@@ -8,7 +8,6 @@
 5. Tworzenie list: jeden ekran tworzenia z dwoma trybami: AI oraz Wklej (manual paste). Listy nie mogą być puste: lista powstaje dopiero przy zapisie, po min. 1 poprawnym słowie (szkic trzymany po stronie klienta).
 6. Manual paste: wklejanie wielu linii (1 linia = 1 rzeczownik).
 7. AI generowanie list: wybór jednej z 5 kategorii rzeczowników (np. Zwierzęta, Jedzenie, Przedmioty domowe, Transport, Zawody) + liczba pozycji; suwak/ustawienie ograniczone do 10–50, domyślnie 10; generacja uruchamiana po kliknięciu „Generuj”; brak pola dodatkowego kontekstu (MVP).
-8. Historia mnemoniczna: funkcja SHOULD; generowana po akcji użytkownika („Generuj historię”) i musi zawierać wszystkie słowa w dokładnej kolejności jako dosłowne tokeny; historia jest w pełni edytowalna i może być regenerowana dowolnie; limit techniczny po stronie bazy (max znaki) + miękki licznik w UI; jeśli AI wygeneruje dłuższą historię, zapisujemy ją.
 13. Edycja list: inline edycja elementów + przyciski góra/dół/usuń; dodawanie przez pole + Enter; zmiana elementów/kolejności/tekstu słowa resetuje lastScore/lastTestedAt; zmiana nazwy nie resetuje daty i stanu testu.
 14. Blokada po teście: po pierwszym wykonanym teście blokujemy tylko zmiany wpływające na sekwencję (dodaj/usuń/zmień słowo/kolejność); zmiana nazwy i praca na historii dozwolone zawsze.
 15. Test: użytkownik wybiera istniejącą listę; test zawsze obejmuje całą listę i iteruje po kolei od pierwszego elementu; format pytania: „Poprzednie: X” + wybór następnego słowa z 2 opcji; brak wpisywania, brak limitu czasu, brak cofania; minimalny próg do testu: min. 5 elementów.
@@ -47,7 +46,6 @@
 - Edycja listy: inline; góra/dół/usuń; dodawanie Enter; po teście blokada zmian sekwencji (elementy/kolejność/tekst słów); nazwa i historia dalej edytowalne.
 - Test: sekwencyjny dla całej listy; wybór z 2 opcji; kontekst „Poprzednie: X” + progres; brak limitu czasu i cofania; min 5 słów.
 - Wyniki testu: procent + poprawne/błędne + data ukończenia; tylko ostatni wynik; przerwany test nie nadpisuje.
-- Historia: SHOULD; generowanie na żądanie; musi zawierać wszystkie słowa w kolejności jako dosłowne tokeny; dowolna edycja i regeneracja; walidacja wulgaryzmów; zapis także gdy przekroczy miękki limit.
 - AI jakość/koszty: czyszczenie wyników, 1 retry braków, modal przy X/Y, limit 3 generacje/dzień, cache 10–30 min z seed per user/day.
 - Usuwanie: delete list (twarde) + delete account (must-have) z silnym potwierdzeniem; anonimizacja logów; retencja ~30 dni.
 - Analityka: eventy pokrywające funnel i użycie (generate/save AI list), tworzenie, testy, usuwanie.
@@ -89,7 +87,6 @@
 <unresolved_issues>
 1. Wybór konkretnego providera do wysyłki magic linków (oraz konfiguracja SPF/DKIM i dane nadawcy).
 2. Ustalenie okna czasowego dla metryk sukcesu (np. 30 dni) oraz definicji „aktywny użytkownik” dla kohort.
-3. Ujednoznacznienie limitu historii: miękki limit „1000 słów” vs twardy limit „max znaków” w bazie (konkretne wartości).
 4. Sposób prezentacji kategorii dla list manualnych na dashboardzie (brak kategorii w modelu manualnym).
 5. Minimalne wymagania niefunkcjonalne (SLA dla AI, wydajność, kompatybilność przeglądarek) do wpisania w PRD.
 </unresolved_issues>
