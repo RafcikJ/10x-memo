@@ -1,0 +1,146 @@
+---
+/**
+ * Profile Page - User settings and preferences
+ *
+ * Features:
+ * - Theme selector
+ * - Usage statistics
+ * - Account management
+ * - Danger zone (delete account)
+ */
+import MainLayout from "../layouts/MainLayout.astro";
+import ProfileStats from "../components/ProfileStats.astro";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { DeleteAccountDialog } from "../components/DeleteAccountDialog";
+import { QuotaIndicator } from "../components/QuotaIndicator";
+import { UserMenu } from "../components/UserMenu";
+
+// Check authentication
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+
+if (!session) {
+  return Astro.redirect("/", 302);
+}
+
+// Fetch user statistics
+const { data: lists } = await Astro.locals.supabase.from("lists").select("id").eq("user_id", session.user.id);
+
+const { data: tests } = await Astro.locals.supabase.from("tests").select("id").eq("user_id", session.user.id);
+
+const totalLists = lists?.length || 0;
+const totalTests = tests?.length || 0;
+
+// TODO: Fetch AI usage from API
+const aiGenerationsUsed = 0;
+const aiGenerationsLimit = 5;
+
+// Account creation date
+const accountCreatedAt = session.user.created_at || new Date().toISOString();
+---
+
+<MainLayout title="Profil - Memo">
+  <!-- User Menu Slot -->
+  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+
+  <!-- AI Quota Indicator Slot -->
+  <QuotaIndicator slot="quota-indicator" client:load />
+
+  <!-- Main Content -->
+  <div class="mx-auto max-w-4xl space-y-8">
+    <!-- Header -->
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Profil</h1>
+      <p class="text-muted-foreground">Zarządzaj swoim kontem i ustawieniami</p>
+    </div>
+
+    <!-- Statistics -->
+    <ProfileStats
+      totalLists={totalLists}
+      totalTests={totalTests}
+      aiGenerationsUsed={aiGenerationsUsed}
+      aiGenerationsLimit={aiGenerationsLimit}
+      accountCreatedAt={accountCreatedAt}
+    />
+
+    <!-- Preferences Section -->
+    <div class="space-y-6 rounded-lg border bg-card p-6">
+      <div>
+        <h2 class="text-lg font-semibold">Preferencje</h2>
+        <p class="text-sm text-muted-foreground">Dostosuj aplikację do swoich potrzeb</p>
+      </div>
+
+      <!-- Theme Setting -->
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium">Motyw aplikacji</div>
+          <div class="text-sm text-muted-foreground">Wybierz wygląd interfejsu</div>
+        </div>
+        <ThemeToggle client:load />
+      </div>
+
+      <!-- Account Info -->
+      <div class="space-y-2 border-t pt-6">
+        <div class="font-medium">Email konta</div>
+        <div class="text-sm text-muted-foreground">{session.user.email}</div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="space-y-4 rounded-lg border border-destructive/50 bg-destructive/5 p-6">
+      <div>
+        <h2 class="text-lg font-semibold text-destructive">Strefa niebezpieczna</h2>
+        <p class="text-sm text-muted-foreground">Nieodwracalne akcje związane z kontem</p>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium">Usuń konto</div>
+          <div class="text-sm text-muted-foreground">Trwale usuń swoje konto i wszystkie dane</div>
+        </div>
+        <button
+          id="delete-account-button"
+          class="inline-flex items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Usuń konto
+        </button>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { DeleteAccountDialog } from "../components/DeleteAccountDialog";
+
+  const deleteButton = document.getElementById("delete-account-button");
+  let dialogRoot: any = null;
+
+  deleteButton?.addEventListener("click", () => {
+    // Create dialog container if it doesn't exist
+    let dialogContainer = document.getElementById("delete-account-dialog");
+    if (!dialogContainer) {
+      dialogContainer = document.createElement("div");
+      dialogContainer.id = "delete-account-dialog";
+      document.body.appendChild(dialogContainer);
+      dialogRoot = createRoot(dialogContainer);
+    }
+
+    // Render dialog
+    dialogRoot.render(
+      createElement(DeleteAccountDialog, {
+        isOpen: true,
+        onClose: () => {
+          dialogRoot.render(
+            createElement(DeleteAccountDialog, {
+              isOpen: false,
+              onClose: () => {},
+            })
+          );
+        },
+      })
+    );
+  });
+</script>

@@ -1,0 +1,98 @@
+---
+/**
+ * Test Page - Immersive test experience
+ *
+ * Features:
+ * - Full-screen focus mode
+ * - Exit button with confirmation
+ * - Progress bar in top bar
+ * - Test runner with state machine
+ */
+import FocusLayout from "../../../layouts/FocusLayout.astro";
+import { TestRunner } from "../../../components/TestRunner";
+import type { ListWithItemsDTO } from "../../../types";
+
+// Check authentication
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+
+if (!session) {
+  return Astro.redirect("/", 302);
+}
+
+// Get list ID from URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/dashboard", 302);
+}
+
+// Fetch list with items
+const { data: list, error } = await Astro.locals.supabase
+  .from("lists")
+  .select("*, items:list_items(*)")
+  .eq("id", id)
+  .eq("user_id", session.user.id)
+  .single<ListWithItemsDTO>();
+
+// Handle errors
+if (error || !list) {
+  return Astro.redirect("/dashboard", 302);
+}
+
+// Sort items by position
+const sortedItems = list.items?.sort((a, b) => a.position - b.position) || [];
+
+// Validate minimum items
+if (sortedItems.length < 5) {
+  return Astro.redirect(`/lists/${id}`, 302);
+}
+---
+
+<FocusLayout title={`Test: ${list.name} - Memo`}>
+  <!-- Top Bar Slot -->
+  <div slot="top-bar" class="flex w-full items-center justify-between">
+    <!-- Exit Button -->
+    <button
+      id="exit-button"
+      class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      title="Przerwij test"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+      Przerwij
+    </button>
+
+    <!-- Progress Indicator (placeholder) -->
+    <div class="text-sm text-muted-foreground">Test w trakcie...</div>
+  </div>
+
+  <!-- Test Runner -->
+  <TestRunner listId={list.id} items={sortedItems} client:load />
+</FocusLayout>
+
+<script>
+  const exitButton = document.getElementById("exit-button");
+  const listId = window.location.pathname.split("/")[2];
+
+  exitButton?.addEventListener("click", () => {
+    const confirmExit = confirm("Czy na pewno chcesz przerwać test? Postęp nie zostanie zapisany.");
+
+    if (confirmExit) {
+      window.location.href = `/lists/${listId}`;
+    }
+  });
+</script>

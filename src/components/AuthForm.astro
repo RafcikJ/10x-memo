@@ -1,0 +1,115 @@
+---
+/**
+ * AuthForm - Magic Link authentication form
+ *
+ * Simple email-only form for passwordless login
+ * Displayed on landing page for non-authenticated users
+ */
+---
+
+<div class="w-full max-w-sm space-y-6">
+  <div class="space-y-2 text-center">
+    <h1 class="text-3xl font-bold tracking-tight">Witaj w Memo</h1>
+    <p class="text-muted-foreground">Wprowadź swój email, aby rozpocząć naukę</p>
+  </div>
+
+  <form id="auth-form" class="space-y-4">
+    <div class="space-y-2">
+      <label
+        for="email"
+        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        Email
+      </label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        required
+        autocomplete="email"
+        placeholder="twoj@email.com"
+        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+    >
+      <span id="button-text">Wyślij link do logowania</span>
+      <span id="button-loader" class="hidden">
+        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+      </span>
+    </button>
+
+    <!-- Status messages -->
+    <div id="auth-message" class="hidden text-sm"></div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById("auth-form") as HTMLFormElement;
+  const emailInput = document.getElementById("email") as HTMLInputElement;
+  const buttonText = document.getElementById("button-text");
+  const buttonLoader = document.getElementById("button-loader");
+  const messageDiv = document.getElementById("auth-message");
+  const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+
+    if (!email) {
+      showMessage("Proszę wprowadzić adres email", "error");
+      return;
+    }
+
+    // Show loading state
+    submitButton.disabled = true;
+    buttonText?.classList.add("hidden");
+    buttonLoader?.classList.remove("hidden");
+    messageDiv?.classList.add("hidden");
+
+    try {
+      // TODO: Implement Supabase Magic Link authentication
+      // This is a placeholder for the actual implementation
+      const response = await fetch("/auth/v1/magiclink", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        showMessage("Link do logowania został wysłany! Sprawdź swoją skrzynkę email.", "success");
+        emailInput.value = "";
+      } else {
+        showMessage("Wystąpił błąd. Spróbuj ponownie.", "error");
+      }
+    } catch (error) {
+      showMessage("Wystąpił błąd połączenia. Spróbuj ponownie.", "error");
+    } finally {
+      // Hide loading state
+      submitButton.disabled = false;
+      buttonText?.classList.remove("hidden");
+      buttonLoader?.classList.add("hidden");
+    }
+  });
+
+  function showMessage(text: string, type: "success" | "error") {
+    if (!messageDiv) return;
+
+    messageDiv.textContent = text;
+    messageDiv.className = `text-sm ${type === "success" ? "text-green-600 dark:text-green-400" : "text-destructive"}`;
+    messageDiv.classList.remove("hidden");
+  }
+</script>

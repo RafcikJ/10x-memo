@@ -1,0 +1,114 @@
+---
+/**
+ * ManualPasteForm - Manual text paste form
+ *
+ * Features:
+ * - Textarea for pasting text
+ * - Validation (min 5 lines, max 200)
+ * - Text sanitization
+ * - Split by newlines
+ */
+---
+
+<form id="manual-paste-form" class="space-y-6">
+  <!-- Instructions -->
+  <div class="rounded-lg bg-muted p-4">
+    <h3 class="mb-2 text-sm font-semibold">Jak to działa?</h3>
+    <ol class="list-inside list-decimal space-y-1 text-sm text-muted-foreground">
+      <li>Wklej listę słówek (każde w nowej linii)</li>
+      <li>Minimum 5 słówek, maksimum 200</li>
+      <li>System automatycznie przetworzy tekst</li>
+    </ol>
+  </div>
+
+  <!-- Textarea -->
+  <div class="space-y-2">
+    <label for="paste-text" class="text-sm font-medium leading-none">
+      Wklej swoje słówka
+    </label>
+    <textarea
+      id="paste-text"
+      name="text"
+      rows={12}
+      required
+      placeholder={"der Apfel\ndie Banane\ndie Orange\n..."}
+      class="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    ></textarea>
+    <p class="text-xs text-muted-foreground">
+      <span id="line-count">0</span> linii (minimum 5, maksimum 200)
+    </p>
+  </div>
+
+  <!-- Error Message -->
+  <div id="manual-error" class="hidden rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert"></div>
+
+  <!-- Submit Button -->
+  <button
+    type="submit"
+    id="manual-submit"
+    class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+  >
+    Przetwórz tekst
+  </button>
+</form>
+
+<script>
+  const form = document.getElementById("manual-paste-form") as HTMLFormElement;
+  const textarea = document.getElementById("paste-text") as HTMLTextAreaElement;
+  const lineCountSpan = document.getElementById("line-count") as HTMLSpanElement;
+  const errorDiv = document.getElementById("manual-error") as HTMLDivElement;
+  const submitButton = document.getElementById("manual-submit") as HTMLButtonElement;
+
+  // Update line count on input
+  textarea.addEventListener("input", () => {
+    const lines = textarea.value.split("\n").filter((line) => line.trim().length > 0);
+    lineCountSpan.textContent = lines.length.toString();
+
+    // Clear error on input
+    errorDiv.classList.add("hidden");
+  });
+
+  // Handle form submission
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const text = textarea.value.trim();
+    const lines = text.split("\n").filter((line) => line.trim().length > 0);
+
+    // Validation
+    if (lines.length < 5) {
+      showError("Musisz wkleić co najmniej 5 słówek");
+      return;
+    }
+
+    if (lines.length > 200) {
+      showError("Możesz wkleić maksymalnie 200 słówek");
+      return;
+    }
+
+    // Sanitize and prepare items
+    const items = lines.map((line, index) => ({
+      position: index + 1,
+      display: sanitizeText(line.trim()),
+    }));
+
+    // Dispatch custom event with items
+    const event = new CustomEvent("manual-items-generated", {
+      detail: { items },
+    });
+    window.dispatchEvent(event);
+  });
+
+  function sanitizeText(text: string): string {
+    // Remove potentially dangerous characters
+    return text
+      .replace(/[<>]/g, "")
+      .slice(0, 80)
+      .trim();
+  }
+
+  function showError(message: string) {
+    errorDiv.textContent = message;
+    errorDiv.classList.remove("hidden");
+  }
+</script>

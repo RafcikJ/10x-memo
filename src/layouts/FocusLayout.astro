@@ -1,0 +1,54 @@
+---
+/**
+ * FocusLayout - Immersive layout for test view
+ *
+ * Features:
+ * - No main navigation (Header/Sidebar/BottomNav hidden)
+ * - Simple top bar with exit button and progress
+ * - Full screen centered content
+ * - Minimal distractions for maximum focus
+ */
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Test - Memo" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <!-- Prevent FOUC (Flash of Unstyled Content) for theme -->
+    <script is:inline>
+      const theme = localStorage.getItem("theme") || "system";
+      if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-background">
+    <!-- Top Bar with Exit and Progress -->
+    <div
+      class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    >
+      <div class="container flex h-14 max-w-screen-lg items-center justify-between px-4">
+        <slot name="top-bar" />
+      </div>
+    </div>
+
+    <!-- Main Content Area (Centered) -->
+    <main class="flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-4">
+      <div class="w-full max-w-2xl">
+        <slot />
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+---
+/**
+ * Navigation - Responsive navigation component
+ * 
+ * Renders:
+ * - BottomNav on mobile (< 640px)
+ * - Sidebar on tablet/desktop (>= 640px)
+ * 
+ * Navigation items:
+ * - Dashboard (Home)
+ * - New List (Plus)
+ * - Profile (User)
+ */
+import BottomNav from "./BottomNav.astro";
+import Sidebar from "./Sidebar.astro";
+
+const currentPath = Astro.url.pathname;
+---
+
+<!-- Mobile: Bottom Navigation -->
+<div class="sm:hidden">
+  <BottomNav currentPath={currentPath} />
+</div>
+
+<!-- Desktop: Sidebar -->
+<div class="hidden sm:block">
+  <Sidebar currentPath={currentPath} />
+</div>

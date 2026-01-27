@@ -1,0 +1,86 @@
+---
+/**
+ * MainLayout - Layout for authenticated pages
+ *
+ * Features:
+ * - Responsive navigation (BottomNav on mobile, Sidebar on desktop)
+ * - Header with logo, AI quota indicator, and user menu
+ * - Main content area with max-width and padding
+ * - Theme support with FOUC prevention
+ */
+import "../styles/global.css";
+import Navigation from "../components/Navigation.astro";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Memo" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <!-- Prevent FOUC (Flash of Unstyled Content) for theme -->
+    <script is:inline>
+      const theme = localStorage.getItem("theme") || "system";
+      if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </head>
+  <body class="min-h-screen">
+    <!-- Main container with responsive padding for bottom nav on mobile -->
+    <div class="flex min-h-screen flex-col pb-16 sm:pb-0">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      >
+        <div class="container flex h-14 max-w-screen-2xl items-center">
+          <!-- Logo (only on mobile, desktop has it in sidebar) -->
+          <div class="flex sm:hidden">
+            <a href="/dashboard" class="flex items-center space-x-2">
+              <span class="text-xl font-bold">Memo</span>
+            </a>
+          </div>
+
+          <!-- Spacer -->
+          <div class="flex-1"></div>
+
+          <!-- AI Quota Indicator (desktop only) -->
+          <div class="hidden sm:block mr-4">
+            <slot name="quota-indicator" />
+          </div>
+
+          <!-- User Menu -->
+          <div>
+            <slot name="user-menu" />
+          </div>
+        </div>
+      </header>
+
+      <div class="flex flex-1">
+        <!-- Sidebar Navigation (desktop only) -->
+        <Navigation />
+
+        <!-- Main Content -->
+        <main class="flex-1">
+          <div class="container max-w-screen-2xl py-6 px-4 sm:px-8">
+            <slot />
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation (mobile only) -->
+    <div class="sm:hidden">
+      <Navigation />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+---
+/**
+ * DashboardGrid - Grid container for list cards
+ *
+ * Features:
+ * - Responsive grid (1 col mobile, up to 3 cols desktop)
+ * - Sorting controls
+ * - Empty state when no lists
+ */
+import type { ListWithItemsDTO } from "../types";
+import ListCard from "./ListCard.astro";
+import EmptyDashboard from "./EmptyDashboard.astro";
+
+interface Props {
+  lists: ListWithItemsDTO[];
+}
+
+const { lists } = Astro.props;
+
+// Check if we have any lists
+const hasLists = lists.length > 0;
+---
+
+{
+  !hasLists ? (
+    <EmptyDashboard />
+  ) : (
+    <div class="space-y-6">
+      {/* Sorting Controls */}
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-muted-foreground">
+          {lists.length} {lists.length === 1 ? "lista" : lists.length < 5 ? "listy" : "list"}
+        </p>
+
+        {/* TODO: Implement sorting dropdown */}
+        <div class="text-sm text-muted-foreground">Sortowanie: Ostatnio używane</div>
+      </div>
+
+      {/* Grid */}
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {lists.map((list) => (
+          <ListCard list={list} itemCount={list.items?.length ?? 0} />
+        ))}
+      </div>
+    </div>
+  )
+}

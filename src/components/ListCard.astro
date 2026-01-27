@@ -1,0 +1,158 @@
+---
+/**
+ * ListCard - Interactive list tile component
+ *
+ * Features:
+ * - Header: name + badge (AI/Manual)
+ * - Body: word count + flag icon
+ * - Footer: progress bar + relative time
+ * - Dropdown menu with actions
+ */
+import type { ListDTO } from "../types";
+
+interface Props {
+  list: ListDTO;
+  itemCount: number;
+}
+
+const { list, itemCount } = Astro.props;
+
+// Format relative time
+const getRelativeTime = (date: string) => {
+  const now = new Date();
+  const past = new Date(date);
+  const diffInMs = now.getTime() - past.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 0) return "Dzisiaj";
+  if (diffInDays === 1) return "Wczoraj";
+  if (diffInDays < 7) return `${diffInDays} dni temu`;
+  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} tyg. temu`;
+  return `${Math.floor(diffInDays / 30)} mies. temu`;
+};
+
+const relativeTime = list.last_accessed_at
+  ? getRelativeTime(list.last_accessed_at)
+  : getRelativeTime(list.created_at);
+
+// Calculate progress percentage
+const progressPercentage = list.last_score ?? 0;
+---
+
+<article
+  class="group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:bg-accent/50"
+>
+  <a href={`/lists/${list.id}`} class="flex flex-col p-6">
+    <!-- Header -->
+    <div class="mb-4 flex items-start justify-between">
+      <h3 class="text-lg font-semibold leading-tight">{list.name}</h3>
+      <span
+        class:list={[
+          "ml-2 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+          list.source === "ai"
+            ? "bg-primary/10 text-primary ring-primary/20"
+            : "bg-secondary text-secondary-foreground ring-secondary",
+        ]}
+      >
+        {list.source === "ai" ? "AI" : "Manual"}
+      </span>
+    </div>
+
+    <!-- Body -->
+    <div class="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M3 3v18h18"></path>
+        <path d="m19 9-5 5-4-4-3 3"></path>
+      </svg>
+      <span>{itemCount} {itemCount === 1 ? "słówko" : itemCount < 5 ? "słówka" : "słów"}</span>
+
+      {
+        list.category && (
+          <>
+            <span class="text-muted-foreground/50">•</span>
+            <span class="capitalize">{list.category.replace("_", " ")}</span>
+          </>
+        )
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-auto space-y-2">
+      <!-- Progress Bar -->
+      {
+        list.last_score !== null && (
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-muted-foreground">Ostatni wynik</span>
+              <span class="font-medium">{list.last_score}%</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                class="h-full bg-primary transition-all"
+                style={`width: ${progressPercentage}%`}
+                role="progressbar"
+                aria-valuenow={progressPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+          </div>
+        )
+      }
+
+      <!-- Relative Time -->
+      <div class="flex items-center gap-2 text-xs text-muted-foreground">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>{relativeTime}</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- Actions Dropdown (Desktop: on hover, Mobile: always visible) -->
+  <div class="absolute right-4 top-4 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+    <!-- TODO: Implement dropdown menu with actions (Test, Edit, Delete) -->
+    <button
+      class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      aria-label="Opcje listy"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="12" cy="5" r="1"></circle>
+        <circle cx="12" cy="19" r="1"></circle>
+      </svg>
+    </button>
+  </div>
+</article>

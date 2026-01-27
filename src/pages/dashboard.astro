@@ -1,0 +1,61 @@
+---
+/**
+ * Dashboard - Main hub for managing lists and tracking progress
+ *
+ * Features:
+ * - Grid of word lists (1 column mobile, up to 3 desktop)
+ * - AI quota indicator
+ * - Empty state with onboarding
+ * - Sorting options (Last used, Score, Name)
+ */
+import MainLayout from "../layouts/MainLayout.astro";
+import DashboardGrid from "../components/DashboardGrid.astro";
+import { QuotaIndicator } from "../components/QuotaIndicator";
+import { UserMenu } from "../components/UserMenu";
+import type { ListWithItemsDTO } from "../types";
+
+// Check authentication
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+
+if (!session) {
+  return Astro.redirect("/", 302);
+}
+
+// Fetch user's lists with items
+const { data: lists, error } = await Astro.locals.supabase
+  .from("lists")
+  .select("*, items:list_items(*)")
+  .eq("user_id", session.user.id)
+  .order("last_accessed_at", { ascending: false, nullsFirst: false })
+  .returns<ListWithItemsDTO[]>();
+
+// Handle error
+if (error) {
+  console.error("Failed to fetch lists:", error);
+}
+
+const userLists = lists ?? [];
+
+// TODO: Fetch AI quota status (will be implemented with API)
+---
+
+<MainLayout title="Pulpit - Memo">
+  <!-- User Menu Slot -->
+  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+
+  <!-- AI Quota Indicator Slot -->
+  <QuotaIndicator slot="quota-indicator" client:load />
+
+  <!-- Main Content -->
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Twoje listy</h1>
+      <p class="text-muted-foreground">Zarządzaj swoimi listami słówek i śledź postępy</p>
+    </div>
+
+    <!-- Dashboard Grid with Lists or Empty State -->
+    <DashboardGrid lists={userLists} />
+  </div>
+</MainLayout>

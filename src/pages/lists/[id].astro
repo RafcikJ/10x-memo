@@ -1,0 +1,232 @@
+---
+/**
+ * List Detail Page - View and edit list
+ *
+ * Features:
+ * - Display list with all items
+ * - Editable header (name)
+ * - Edit/delete items (when not locked)
+ * - List statistics
+ * - Start test button
+ * - Lock after first test
+ */
+import MainLayout from "../../layouts/MainLayout.astro";
+import { ListHeader } from "../../components/ListHeader";
+import { WordListItem } from "../../components/WordListItem";
+import { StartTestButton } from "../../components/StartTestButton";
+import { QuotaIndicator } from "../../components/QuotaIndicator";
+import { UserMenu } from "../../components/UserMenu";
+import type { ListWithItemsDTO } from "../../types";
+
+// Check authentication
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+
+if (!session) {
+  return Astro.redirect("/", 302);
+}
+
+// Get list ID from URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/dashboard", 302);
+}
+
+// Fetch list with items
+const { data: list, error } = await Astro.locals.supabase
+  .from("lists")
+  .select("*, items:list_items(*)")
+  .eq("id", id)
+  .eq("user_id", session.user.id)
+  .single<ListWithItemsDTO>();
+
+// Handle errors
+if (error || !list) {
+  return Astro.redirect("/dashboard", 302);
+}
+
+// Sort items by position
+const sortedItems = list.items?.sort((a, b) => a.position - b.position) || [];
+const itemCount = sortedItems.length;
+
+// Check if list is locked (after first test)
+const isLocked = !!list.first_tested_at;
+
+// Format last test date
+const formatDate = (date: string | null) => {
+  if (!date) return null;
+  const d = new Date(date);
+  return d.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
+};
+
+const lastTestedDate = formatDate(list.last_tested_at);
+---
+
+<MainLayout title={`${list.name} - Memo`}>
+  <!-- User Menu Slot -->
+  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+
+  <!-- AI Quota Indicator Slot -->
+  <QuotaIndicator slot="quota-indicator" client:load />
+
+  <!-- Main Content -->
+  <div class="mx-auto max-w-4xl space-y-6">
+    <!-- Back Button -->
+    <div>
+      <a href="/dashboard" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m12 19-7-7 7-7"></path>
+          <path d="M19 12H5"></path>
+        </svg>
+        Powrót do pulpitu
+      </a>
+    </div>
+
+    <!-- Header with Editable Name -->
+    <ListHeader initialName={list.name} listId={list.id} isLocked={isLocked} client:load />
+
+    <!-- List Metadata -->
+    <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+      <div class="flex items-center gap-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 3v18h18"></path>
+          <path d="m19 9-5 5-4-4-3 3"></path>
+        </svg>
+        <span>{itemCount} {itemCount === 1 ? "słówko" : itemCount < 5 ? "słówka" : "słów"}</span>
+      </div>
+
+      {
+        list.source === "ai" && list.category && (
+          <div class="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
+              <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+              <path d="M12 2v2" />
+              <path d="M12 22v-2" />
+            </svg>
+            <span class="capitalize">{list.category.replace("_", " ")}</span>
+          </div>
+        )
+      }
+
+      {
+        lastTestedDate && (
+          <div class="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>Ostatni test: {lastTestedDate}</span>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Lock Notice -->
+    {
+      isLocked && (
+        <div class="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
+          <div class="flex items-start gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="mt-0.5 text-yellow-600 dark:text-yellow-500"
+            >
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <div>
+              <h3 class="font-semibold text-yellow-900 dark:text-yellow-100">Lista zablokowana</h3>
+              <p class="mt-1 text-sm text-yellow-800 dark:text-yellow-200">
+                Ta lista została już przetestowana i nie może być edytowana. Zachowujemy oryginalną treść, aby wyniki
+                testów były wiarygodne.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    <!-- Statistics -->
+    {
+      list.last_score !== null && (
+        <div class="grid gap-4 sm:grid-cols-3">
+          <div class="rounded-lg border bg-card p-4">
+            <div class="text-sm text-muted-foreground">Ostatni wynik</div>
+            <div class="mt-1 text-2xl font-bold">{list.last_score}%</div>
+          </div>
+
+          <div class="rounded-lg border bg-card p-4">
+            <div class="text-sm text-muted-foreground">Poprawne odpowiedzi</div>
+            <div class="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">{list.last_correct}</div>
+          </div>
+
+          <div class="rounded-lg border bg-card p-4">
+            <div class="text-sm text-muted-foreground">Błędne odpowiedzi</div>
+            <div class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{list.last_wrong}</div>
+          </div>
+        </div>
+      )
+    }
+
+    <!-- Word List -->
+    <div class="space-y-3">
+      <h2 class="text-lg font-semibold">Słówka</h2>
+      <ol class="space-y-2">
+        {sortedItems.map((item) => <WordListItem item={item} isLocked={isLocked} client:load />)}
+      </ol>
+    </div>
+
+    <!-- Start Test Button (Sticky on Mobile) -->
+    <StartTestButton listId={list.id} itemCount={itemCount} client:load />
+  </div>
+</MainLayout>
