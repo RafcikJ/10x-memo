@@ -13,11 +13,9 @@ import { TestRunner } from "../../../components/TestRunner";
 import type { ListWithItemsDTO } from "../../../types";
 
 // Check authentication
-const {
-  data: { session },
-} = await Astro.locals.supabase.auth.getSession();
+const user = Astro.locals.user;
 
-if (!session) {
+if (!user) {
   return Astro.redirect("/", 302);
 }
 
@@ -33,7 +31,7 @@ const { data: list, error } = await Astro.locals.supabase
   .from("lists")
   .select("*, items:list_items(*)")
   .eq("id", id)
-  .eq("user_id", session.user.id)
+  .eq("user_id", user.id)
   .single<ListWithItemsDTO>();
 
 // Handle errors

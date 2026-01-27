@@ -14,13 +14,18 @@ import { QuotaIndicator } from "../../components/QuotaIndicator";
 import { UserMenu } from "../../components/UserMenu";
 
 // Check authentication
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/", 302);
+}
+
+// Fetch user email for display
 const {
   data: { session },
 } = await Astro.locals.supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect("/", 302);
-}
+const userEmail = session?.user?.email || user.email;
 
 // TODO: Fetch AI quota status
 const quotaRemaining = 5; // Placeholder
@@ -28,7 +33,7 @@ const quotaRemaining = 5; // Placeholder
 
 <MainLayout title="Nowa lista - Memo">
   <!-- User Menu Slot -->
-  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+  <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
   <QuotaIndicator slot="quota-indicator" client:load />

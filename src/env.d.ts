@@ -20,6 +20,9 @@ interface ImportMetaEnv {
   readonly PUBLIC_APP_URL?: string;
   readonly PUBLIC_SUPABASE_URL: string;
   readonly PUBLIC_SUPABASE_ANON_KEY: string;
+  readonly DISABLE_AUTH_FOR_TESTING?: string;
+  readonly TEST_USER_ID?: string;
+  readonly TEST_USER_EMAIL?: string;
   // more env variables...
 }
 

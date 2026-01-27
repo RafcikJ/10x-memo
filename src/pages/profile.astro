@@ -16,18 +16,23 @@ import { QuotaIndicator } from "../components/QuotaIndicator";
 import { UserMenu } from "../components/UserMenu";
 
 // Check authentication
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/", 302);
+}
+
+// Fetch user email for display
 const {
   data: { session },
 } = await Astro.locals.supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect("/", 302);
-}
+const userEmail = session?.user?.email || user.email;
 
 // Fetch user statistics
-const { data: lists } = await Astro.locals.supabase.from("lists").select("id").eq("user_id", session.user.id);
+const { data: lists } = await Astro.locals.supabase.from("lists").select("id").eq("user_id", user.id);
 
-const { data: tests } = await Astro.locals.supabase.from("tests").select("id").eq("user_id", session.user.id);
+const { data: tests } = await Astro.locals.supabase.from("tests").select("id").eq("user_id", user.id);
 
 const totalLists = lists?.length || 0;
 const totalTests = tests?.length || 0;
@@ -37,12 +42,12 @@ const aiGenerationsUsed = 0;
 const aiGenerationsLimit = 5;
 
 // Account creation date
-const accountCreatedAt = session.user.created_at || new Date().toISOString();
+const accountCreatedAt = session?.user?.created_at || user.created_at || new Date().toISOString();
 ---
 
 <MainLayout title="Profil - Memo">
   <!-- User Menu Slot -->
-  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+  <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
   <QuotaIndicator slot="quota-indicator" client:load />
@@ -83,7 +88,7 @@ const accountCreatedAt = session.user.created_at || new Date().toISOString();
       <!-- Account Info -->
       <div class="space-y-2 border-t pt-6">
         <div class="font-medium">Email konta</div>
-        <div class="text-sm text-muted-foreground">{session.user.email}</div>
+        <div class="text-sm text-muted-foreground">{userEmail}</div>
       </div>
     </div>
 

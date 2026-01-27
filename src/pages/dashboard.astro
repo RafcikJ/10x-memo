@@ -15,19 +15,24 @@ import { UserMenu } from "../components/UserMenu";
 import type { ListWithItemsDTO } from "../types";
 
 // Check authentication
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/", 302);
+}
+
+// Fetch user email for display
 const {
   data: { session },
 } = await Astro.locals.supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect("/", 302);
-}
+const userEmail = session?.user?.email || user.email;
 
 // Fetch user's lists with items
 const { data: lists, error } = await Astro.locals.supabase
   .from("lists")
   .select("*, items:list_items(*)")
-  .eq("user_id", session.user.id)
+  .eq("user_id", user.id)
   .order("last_accessed_at", { ascending: false, nullsFirst: false })
   .returns<ListWithItemsDTO[]>();
 
@@ -43,7 +48,7 @@ const userLists = lists ?? [];
 
 <MainLayout title="Pulpit - Memo">
   <!-- User Menu Slot -->
-  <UserMenu slot="user-menu" userEmail={session.user.email} client:load />
+  <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
   <QuotaIndicator slot="quota-indicator" client:load />

@@ -86,6 +86,16 @@ npm run preview
 
 > Note: Supabase/OpenRouter setup (env vars, keys, and provider configuration) is not documented in this repo yet; see [Project status](#7-project-status) and `./.ai/prd.md` unresolved items.
 
+### Testing mode (bypass authentication)
+
+For **development and testing only**, you can bypass authentication to test business functionality without logging in.
+
+⚠️ **WARNING**: This should **NEVER** be enabled in production!
+
+**Quick Start**: See [`TESTING_QUICKSTART.md`](./TESTING_QUICKSTART.md) for a 2-minute setup guide.
+
+**Full Documentation**: See [`TESTING_MODE.md`](./TESTING_MODE.md) for detailed instructions and troubleshooting.
+
 ## 5. Available scripts
 
 From `package.json`:
