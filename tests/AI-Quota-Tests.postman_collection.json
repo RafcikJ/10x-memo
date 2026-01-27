@@ -1,0 +1,629 @@
+{
+  "info": {
+    "name": "AI Quota Tests",
+    "description": "Kolekcja testów dla serwisu AI Quota (ai-quota.ts)\n\nTestuje:\n- Generowanie list AI\n- Limity dzienne (5/dzień)\n- Walidację danych\n- Autoryzację\n- Rate limiting",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Sukces - Generowanie listy",
+      "item": [
+        {
+          "name": "Generuj listę - Animals (10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Podstawowe zapytanie - generuje 10 słów z kategorii animals.\nKonsumuje 1 z 5 dziennych limitów."
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Food (15)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"food\",\n  \"count\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Household Items (20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"household_items\",\n  \"count\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Transport (25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"transport\",\n  \"count\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Jobs (30)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"jobs\",\n  \"count\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Minimum (10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Test minimalnej liczby elementów (10)"
+          },
+          "response": []
+        },
+        {
+          "name": "Generuj listę - Maximum (50)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Test maksymalnej liczby elementów (50)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Błędy walidacji (400)",
+      "item": [
+        {
+          "name": "Nieprawidłowa kategoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"invalid_category\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nKategoria nie istnieje"
+          },
+          "response": []
+        },
+        {
+          "name": "Count poniżej minimum (<10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nCount musi być >= 10"
+          },
+          "response": []
+        },
+        {
+          "name": "Count powyżej maksimum (>50)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nCount musi być <= 50"
+          },
+          "response": []
+        },
+        {
+          "name": "Nieprawidłowy JSON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "invalid json content"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nBody nie jest prawidłowym JSON"
+          },
+          "response": []
+        },
+        {
+          "name": "Brakujące pola",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nBrak wymaganych pól: category i count"
+          },
+          "response": []
+        },
+        {
+          "name": "Brak category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nBrak pola category"
+          },
+          "response": []
+        },
+        {
+          "name": "Brak count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 400\nBrak pola count"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Błędy autoryzacji (401)",
+      "item": [
+        {
+          "name": "Brak tokenu autoryzacji",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 401\nBrak nagłówka Authorization"
+          },
+          "response": []
+        },
+        {
+          "name": "Nieprawidłowy token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_12345"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "Oczekiwany status: 401\nToken jest nieprawidłowy"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Test Rate Limit (429)",
+      "item": [
+        {
+          "name": "Request 1/5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "1/5 - Powinno zadziałać (200 OK)"
+          },
+          "response": []
+        },
+        {
+          "name": "Request 2/5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "2/5 - Powinno zadziałać (200 OK)"
+          },
+          "response": []
+        },
+        {
+          "name": "Request 3/5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "3/5 - Powinno zadziałać (200 OK)"
+          },
+          "response": []
+        },
+        {
+          "name": "Request 4/5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "4/5 - Powinno zadziałać (200 OK)"
+          },
+          "response": []
+        },
+        {
+          "name": "Request 5/5 (ostatni dozwolony)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "5/5 - Ostatni dozwolony request (200 OK)"
+          },
+          "response": []
+        },
+        {
+          "name": "Request 6/5 (PRZEKROCZENIE LIMITU)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"animals\",\n  \"count\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "generate-list"]
+            },
+            "description": "6/5 - POWINNO ZWRÓCIĆ 429 Too Many Requests\n\nOczekiwana odpowiedź:\n{\n  \"error\": \"rate_limit_exceeded\",\n  \"message\": \"Daily AI generation limit exceeded (5/day)\",\n  \"reset_at\": \"2026-01-28T00:00:00.000Z\",\n  \"retry_after\": 43200\n}"
+          },
+          "response": []
+        }
+      ],
+      "description": "Uruchamiaj requesty po kolei (1→2→3→4→5→6) aby przetestować rate limiting.\nPierwsze 5 powinno zwrócić 200 OK, szósty powinien zwrócić 429 Too Many Requests."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4321",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_supabase_access_token_here",
+      "type": "string",
+      "description": "Token autoryzacji z Supabase (znajdź w Session Storage po zalogowaniu)"
+    }
+  ]
+}
