@@ -10,7 +10,7 @@
  */
 import MainLayout from "../layouts/MainLayout.astro";
 import DashboardGrid from "../components/DashboardGrid.astro";
-import { QuotaIndicator } from "../components/QuotaIndicator";
+// import { QuotaIndicator } from "../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../components/UserMenu";
 import type { ListWithItemsDTO } from "../types";
 
@@ -51,7 +51,8 @@ const userLists = lists ?? [];
   <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
-  <QuotaIndicator slot="quota-indicator" client:load />
+  <!-- <QuotaIndicator slot="quota-indicator" client:load /> -->
+  <!-- Disabled for MVP -->
 
   <!-- Main Content -->
   <div class="space-y-6">

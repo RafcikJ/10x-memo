@@ -26,12 +26,14 @@
 This document provides comprehensive implementation guidance for all API endpoints in the word list learning application. The API follows a hybrid architecture:
 
 **Architecture Components:**
+
 - **Custom Astro API Routes** (`/api/*`): Complex business logic, AI integration
 - **PostgreSQL RPC Functions**: Atomic database operations with business rules
 - **Supabase PostgREST** (`/rest/v1/*`): Automatic CRUD with Row Level Security
 - **Supabase Auth** (`/auth/v1/*`): Magic link authentication
 
 **Key Principles:**
+
 1. Security-first: All endpoints require authentication, RLS enforces data isolation
 2. Validation: Zod schemas for all inputs
 3. Error handling: Early returns, guard clauses, consistent error responses
@@ -45,20 +47,24 @@ This document provides comprehensive implementation guidance for all API endpoin
 ### 2.1 POST /api/ai/generate-list
 
 #### Overview
+
 Generates a word list using AI (OpenRouter.ai) with daily quota enforcement (5/day per user). Returns word list for client-side review before saving.
 
 #### Request Details
+
 - **Method:** POST
 - **URL:** `/api/ai/generate-list`
 - **Authentication:** Required (Bearer token)
 - **Content-Type:** application/json
 
 **Parameters:**
+
 - Required:
   - `category` (NounCategory): One of ["animals", "food", "household_items", "transport", "jobs"]
   - `count` (number): Integer between 10 and 50
 
 **Request Body:**
+
 ```json
 {
   "category": "animals",
@@ -67,6 +73,7 @@ Generates a word list using AI (OpenRouter.ai) with daily quota enforcement (5/d
 ```
 
 #### Utilized Types
+
 ```typescript
 import type {
   GenerateListRequestDTO,
@@ -74,13 +81,14 @@ import type {
   GeneratedListItem,
   ErrorResponse,
   RateLimitErrorResponse,
-  NounCategory
-} from '@/types';
+  NounCategory,
+} from "@/types";
 ```
 
 #### Response Details
 
 **Success Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -93,7 +101,9 @@ import type {
 ```
 
 **Error Responses:**
+
 - **400 Bad Request:** Invalid parameters
+
 ```json
 {
   "error": "validation_error",
@@ -102,6 +112,7 @@ import type {
 ```
 
 - **401 Unauthorized:** Missing/invalid authentication
+
 ```json
 {
   "error": "unauthorized",
@@ -110,6 +121,7 @@ import type {
 ```
 
 - **429 Too Many Requests:** Daily limit exceeded
+
 ```json
 {
   "error": "rate_limit_exceeded",
@@ -119,6 +131,7 @@ import type {
 ```
 
 - **500 Internal Server Error:** AI service failure
+
 ```json
 {
   "error": "ai_service_error",
@@ -161,26 +174,31 @@ import type {
 #### Security Considerations
 
 **Authentication:**
+
 - Verify JWT token via `context.locals.supabase.auth.getUser()`
 - Reject requests without valid session
 - Use service role client for RPC calls
 
 **Rate Limiting:**
+
 - Enforce 5 generations per user per UTC day
 - Atomic quota consumption via RPC
 - Return clear reset time to client
 
 **Input Sanitization:**
+
 - Validate category against enum (prevents injection)
 - Sanitize count parameter (integer coercion)
 - Trim whitespace from AI responses
 
 **AI Safety:**
+
 - Profanity filtering on outputs
 - Content validation (ensure appropriate results)
 - Error message sanitization (no internal details leaked)
 
 **Data Privacy:**
+
 - No user data sent to AI provider
 - Only category and count transmitted
 - No logging of generated content
@@ -188,54 +206,70 @@ import type {
 #### Error Handling
 
 **Validation Errors:**
+
 ```typescript
 if (!validCategories.includes(category)) {
-  return new Response(JSON.stringify({
-    error: 'validation_error',
-    message: 'Invalid category'
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: "validation_error",
+      message: "Invalid category",
+    }),
+    { status: 400 }
+  );
 }
 ```
 
 **Rate Limit Errors:**
+
 ```typescript
 try {
-  await supabase.rpc('consume_ai_generation');
+  await supabase.rpc("consume_ai_generation");
 } catch (error) {
-  if (error.code === 'P0001') {
-    return new Response(JSON.stringify({
-      error: 'rate_limit_exceeded',
-      message: error.message,
-      reset_at: getNextMidnightUTC()
-    }), { status: 429 });
+  if (error.code === "P0001") {
+    return new Response(
+      JSON.stringify({
+        error: "rate_limit_exceeded",
+        message: error.message,
+        reset_at: getNextMidnightUTC(),
+      }),
+      { status: 429 }
+    );
   }
 }
 ```
 
 **AI Service Errors:**
+
 ```typescript
 try {
   const response = await openRouterClient.generate(prompt);
 } catch (error) {
-  console.error('[AI Generation Error]', error);
-  return new Response(JSON.stringify({
-    error: 'ai_service_error',
-    message: 'Failed to generate list. Please try again.',
-    retry_after: 30
-  }), { status: 500 });
+  console.error("[AI Generation Error]", error);
+  return new Response(
+    JSON.stringify({
+      error: "ai_service_error",
+      message: "Failed to generate list. Please try again.",
+      retry_after: 30,
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 **Incomplete Results:**
+
 ```typescript
 if (generatedItems.length < count) {
   // Retry once
   const retryResponse = await openRouterClient.generate(prompt);
   if (retryResponse.length < count) {
-    return new Response(JSON.stringify({
-      error: 'ai_incomplete_error',
-      message: `Only ${retryResponse.length}/${count} words generated. Please try again.`
-    }), { status: 500 });
+    return new Response(
+      JSON.stringify({
+        error: "ai_incomplete_error",
+        message: `Only ${retryResponse.length}/${count} words generated. Please try again.`,
+      }),
+      { status: 500 }
+    );
   }
 }
 ```
@@ -243,21 +277,25 @@ if (generatedItems.length < count) {
 #### Performance Considerations
 
 **Caching Strategy:**
+
 - Cache common category requests (10-30 min TTL)
 - Use Redis/memory cache with key: `ai:${userId}:${category}:${dayUTC}`
 - Serve cached results for same-day repeat requests
 
 **Timeout Management:**
+
 - Set 30-second timeout on AI requests
 - Return 500 with retry message on timeout
 - Log timeout events for monitoring
 
 **Concurrent Request Handling:**
+
 - Atomic quota consumption prevents race conditions
 - Database-level locking ensures consistency
 - No queue needed (synchronous processing acceptable)
 
 **Response Size:**
+
 - Typical response: ~2-5 KB (20 words)
 - No compression needed at this scale
 - JSON response fits in single TCP packet
@@ -306,19 +344,23 @@ if (generatedItems.length < count) {
 ### 2.2 DELETE /api/account
 
 #### Overview
+
 Permanently deletes user account with all associated data. Requires explicit confirmation. Cascades to all user tables (profiles, lists, items, tests, AI usage). GDPR-compliant data erasure.
 
 #### Request Details
+
 - **Method:** DELETE
 - **URL:** `/api/account`
 - **Authentication:** Required (Bearer token)
 - **Content-Type:** application/json
 
 **Parameters:**
+
 - Required:
   - `confirmation` (string): Must equal "DELETE" (case-sensitive)
 
 **Request Body:**
+
 ```json
 {
   "confirmation": "DELETE"
@@ -326,17 +368,15 @@ Permanently deletes user account with all associated data. Requires explicit con
 ```
 
 #### Utilized Types
+
 ```typescript
-import type {
-  DeleteAccountCommand,
-  DeleteAccountResponse,
-  ErrorResponse
-} from '@/types';
+import type { DeleteAccountCommand, DeleteAccountResponse, ErrorResponse } from "@/types";
 ```
 
 #### Response Details
 
 **Success Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -345,7 +385,9 @@ import type {
 ```
 
 **Error Responses:**
+
 - **400 Bad Request:** Invalid confirmation
+
 ```json
 {
   "error": "confirmation_required",
@@ -354,6 +396,7 @@ import type {
 ```
 
 - **401 Unauthorized:** Not authenticated
+
 ```json
 {
   "error": "unauthorized",
@@ -362,6 +405,7 @@ import type {
 ```
 
 - **500 Internal Server Error:** Deletion failed
+
 ```json
 {
   "error": "deletion_failed",
@@ -396,25 +440,30 @@ import type {
 #### Security Considerations
 
 **Authentication:**
+
 - Require valid authenticated session
 - No delegation or proxy deletion allowed
 - Session must be recent (< 5 minutes for sensitive operation)
 
 **Confirmation Requirement:**
+
 - Exact string match "DELETE" (case-sensitive)
 - Prevents accidental deletion
 - UI should show strong confirmation modal
 
 **Authorization:**
+
 - User can only delete own account
 - No admin override in MVP
 - Service role used only for auth.admin API
 
 **Audit Trail:**
+
 - Record user_id and timestamp in system logs
 - Retain anonymized deletion logs per GDPR (30 days)
 
 **Cascade Integrity:**
+
 - Database foreign keys ensure complete deletion
 - Verify cascade defined: `ON DELETE CASCADE`
 - No orphaned records left behind
@@ -422,52 +471,70 @@ import type {
 #### Error Handling
 
 **Validation Errors:**
+
 ```typescript
-if (body.confirmation !== 'DELETE') {
-  return new Response(JSON.stringify({
-    error: 'confirmation_required',
-    message: 'Type DELETE to confirm account deletion'
-  }), { status: 400 });
+if (body.confirmation !== "DELETE") {
+  return new Response(
+    JSON.stringify({
+      error: "confirmation_required",
+      message: "Type DELETE to confirm account deletion",
+    }),
+    { status: 400 }
+  );
 }
 ```
 
 **Authentication Errors:**
+
 ```typescript
-const { data: { user }, error } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error,
+} = await supabase.auth.getUser();
 if (error || !user) {
-  return new Response(JSON.stringify({
-    error: 'unauthorized',
-    message: 'Authentication required'
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: "unauthorized",
+      message: "Authentication required",
+    }),
+    { status: 401 }
+  );
 }
 ```
 
 **Deletion Errors:**
+
 ```typescript
 try {
   await supabaseAdmin.auth.admin.deleteUser(user.id);
 } catch (error) {
-  console.error('[Account Deletion Error]', error);
-  return new Response(JSON.stringify({
-    error: 'deletion_failed',
-    message: 'Failed to delete account. Please try again.'
-  }), { status: 500 });
+  console.error("[Account Deletion Error]", error);
+  return new Response(
+    JSON.stringify({
+      error: "deletion_failed",
+      message: "Failed to delete account. Please try again.",
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 #### Performance Considerations
 
 **Database Load:**
+
 - Single API call triggers cascade deletion
 - Database handles referential integrity
 - Typical deletion: < 500ms for standard user data
 
 **Concurrency:**
+
 - Deletion is idempotent (safe to retry)
 - No race conditions (single user operation)
 - Lock not needed (atomic delete)
 
 **Background Jobs:**
+
 - No immediate background jobs needed
 - Log anonymization runs on schedule (daily)
 - Cached data expires naturally (TTL)
@@ -515,9 +582,11 @@ try {
 ### 3.1 touch_list
 
 #### Overview
+
 Updates the `last_accessed_at` timestamp for a list when user views or interacts with it. Used for "recently used" sorting on dashboard. Implements owner-only access control.
 
 #### Function Signature
+
 ```sql
 CREATE OR REPLACE FUNCTION public.touch_list(p_list_id uuid)
 RETURNS public.lists
@@ -528,14 +597,17 @@ AS $$
 ```
 
 #### Parameters
+
 - **p_list_id** (uuid, required): ID of the list to touch
 
 #### Return Type
+
 Returns updated `public.lists` row
 
 #### Utilized Types
+
 ```typescript
-import type { TouchListCommand, TouchListResponse, ListEntity } from '@/types';
+import type { TouchListCommand, TouchListResponse, ListEntity } from "@/types";
 ```
 
 #### Business Logic
@@ -566,7 +638,7 @@ DECLARE
 BEGIN
   -- Guard: Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM public.lists 
+    SELECT 1 FROM public.lists
     WHERE id = p_list_id AND user_id = auth.uid()
   ) THEN
     RAISE EXCEPTION 'list not found or access denied'
@@ -590,16 +662,19 @@ GRANT EXECUTE ON FUNCTION public.touch_list(uuid) TO authenticated;
 #### Security Considerations
 
 **SECURITY DEFINER:**
+
 - Function runs with creator privileges
 - Bypasses RLS policies
 - Manual authorization check required
 
 **Authorization:**
+
 - Owner-only access enforced
 - Check `user_id = auth.uid()`
 - Explicit exception on unauthorized access
 
 **SQL Injection:**
+
 - UUID parameter type prevents injection
 - No dynamic SQL execution
 - Safe parameter binding
@@ -607,17 +682,19 @@ GRANT EXECUTE ON FUNCTION public.touch_list(uuid) TO authenticated;
 #### Error Handling
 
 **List Not Found:**
+
 ```sql
 RAISE EXCEPTION 'list not found or access denied'
   USING ERRCODE = 'P0001';
 ```
 
 **Client Handling:**
+
 ```typescript
 try {
-  await supabase.rpc('touch_list', { p_list_id: listId });
+  await supabase.rpc("touch_list", { p_list_id: listId });
 } catch (error) {
-  if (error.code === 'P0001') {
+  if (error.code === "P0001") {
     // Handle not found or access denied
   }
 }
@@ -626,16 +703,19 @@ try {
 #### Performance Considerations
 
 **Index Usage:**
+
 - Uses `lists_pkey` (id PRIMARY KEY)
 - Fast point lookup
 - No table scan needed
 
 **Write Performance:**
+
 - Single-row update
 - No triggers on `last_accessed_at` change
 - < 10ms typical execution
 
 **Concurrency:**
+
 - Safe for concurrent calls
 - Last write wins (acceptable for access tracking)
 - No locks needed
@@ -643,16 +723,16 @@ try {
 #### Usage Example
 
 **TypeScript Client:**
+
 ```typescript
-import { TouchListCommand } from '@/types';
+import { TouchListCommand } from "@/types";
 
 async function trackListAccess(listId: string) {
   const command: TouchListCommand = {
-    p_list_id: listId
+    p_list_id: listId,
   };
 
-  const { data, error } = await supabase
-    .rpc('touch_list', command);
+  const { data, error } = await supabase.rpc("touch_list", command);
 
   if (error) throw error;
   return data; // Updated list record
@@ -680,9 +760,11 @@ async function trackListAccess(listId: string) {
 ### 3.2 complete_test
 
 #### Overview
+
 Records completed test results, updates list statistics, and enforces list editing lock on first test. Implements atomic transaction with validation guards. Core business logic function.
 
 #### Function Signature
+
 ```sql
 CREATE OR REPLACE FUNCTION public.complete_test(
   p_list_id uuid,
@@ -698,21 +780,20 @@ AS $$
 ```
 
 #### Parameters
+
 - **p_list_id** (uuid, required): ID of the list being tested
 - **p_correct** (integer, required): Number of correct answers (>= 0)
 - **p_wrong** (integer, required): Number of wrong answers (>= 0)
 - **p_completed_at** (timestamptz, optional): Test completion timestamp (defaults to now())
 
 #### Return Type
+
 Returns created `public.tests` row
 
 #### Utilized Types
+
 ```typescript
-import type { 
-  CompleteTestCommand, 
-  CompleteTestResponse, 
-  TestEntity 
-} from '@/types';
+import type { CompleteTestCommand, CompleteTestResponse, TestEntity } from "@/types";
 ```
 
 #### Business Logic
@@ -837,21 +918,25 @@ GRANT EXECUTE ON FUNCTION public.complete_test(uuid, integer, integer, timestamp
 #### Security Considerations
 
 **SECURITY DEFINER:**
+
 - Runs with creator privileges
 - Bypasses RLS for atomic updates
 - Manual authorization enforced
 
 **Authorization:**
+
 - Owner-only access verified
 - Check `user_id = auth.uid()`
 - Explicit error on unauthorized access
 
 **Data Validation:**
+
 - Min 5 items enforced
 - Consistency check (correct + wrong = total)
 - Score calculation validated
 
 **Immutability:**
+
 - Test records write-once
 - No UPDATE/DELETE allowed via RLS
 - Audit trail preserved
@@ -859,18 +944,21 @@ GRANT EXECUTE ON FUNCTION public.complete_test(uuid, integer, integer, timestamp
 #### Error Handling
 
 **List Not Found:**
+
 ```sql
 RAISE EXCEPTION 'list not found'
   USING ERRCODE = 'P0001';
 ```
 
 **Minimum Items Validation:**
+
 ```sql
 RAISE EXCEPTION 'list must have at least 5 items to complete a test'
   USING ERRCODE = 'P0001';
 ```
 
 **Consistency Validation:**
+
 ```sql
 RAISE EXCEPTION 'correct + wrong must equal total items in list (expected: %, got: %)',
   v_items_count, p_correct + p_wrong
@@ -878,15 +966,16 @@ RAISE EXCEPTION 'correct + wrong must equal total items in list (expected: %, go
 ```
 
 **Client Handling:**
+
 ```typescript
 try {
-  await supabase.rpc('complete_test', {
+  await supabase.rpc("complete_test", {
     p_list_id: listId,
     p_correct: correctCount,
-    p_wrong: wrongCount
+    p_wrong: wrongCount,
   });
 } catch (error) {
-  if (error.code === 'P0001') {
+  if (error.code === "P0001") {
     // Handle validation errors
     showError(error.message);
   }
@@ -896,21 +985,25 @@ try {
 #### Performance Considerations
 
 **Transaction Isolation:**
+
 - Single transaction for all operations
 - Atomic commit/rollback
 - No partial state possible
 
 **Index Usage:**
+
 - `lists_pkey` for list lookup
 - `list_items_list_position_idx` for count
 - Fast execution (< 50ms typical)
 
 **Locking:**
+
 - Row-level locks only
 - No table locks
 - Concurrent tests on different lists allowed
 
 **Write Volume:**
+
 - Inserts: 1 row (tests)
 - Updates: 1 row (lists)
 - Minimal overhead
@@ -918,8 +1011,9 @@ try {
 #### Usage Example
 
 **TypeScript Client:**
+
 ```typescript
-import { CompleteTestCommand, CompleteTestResponse } from '@/types';
+import { CompleteTestCommand, CompleteTestResponse } from "@/types";
 
 async function submitTestResults(
   listId: string,
@@ -929,11 +1023,10 @@ async function submitTestResults(
   const command: CompleteTestCommand = {
     p_list_id: listId,
     p_correct: correctCount,
-    p_wrong: wrongCount
+    p_wrong: wrongCount,
   };
 
-  const { data, error } = await supabase
-    .rpc('complete_test', command);
+  const { data, error } = await supabase.rpc("complete_test", command);
 
   if (error) throw error;
   return data;
@@ -964,23 +1057,26 @@ async function submitTestResults(
 ### 3.3 consume_ai_generation
 
 #### Overview
+
 Checks and consumes AI generation quota (5 per UTC day). Implements atomic increment with limit enforcement. Returns remaining quota information for client UI.
 
 **Important**: This is an RPC function with **side effects** (increments usage counter). It must be called via **POST /rest/v1/rpc/consume_ai_generation**, not GET. The function atomically checks the limit and increments the counter in a single transaction.
 
 **Checking quota without consuming**: To display remaining quota in UI without incrementing the counter, query the `ai_usage_daily` table directly:
+
 ```typescript
 const { data } = await supabase
-  .from('ai_usage_daily')
-  .select('used')
-  .eq('user_id', userId)
-  .eq('day_utc', getCurrentUTCDate())
+  .from("ai_usage_daily")
+  .select("used")
+  .eq("user_id", userId)
+  .eq("day_utc", getCurrentUTCDate())
   .single();
 
 const remaining = 5 - (data?.used || 0);
 ```
 
 #### Function Signature
+
 ```sql
 CREATE OR REPLACE FUNCTION public.consume_ai_generation()
 RETURNS jsonb
@@ -991,10 +1087,13 @@ AS $$
 ```
 
 #### Parameters
+
 None (uses `auth.uid()` and current UTC date)
 
 #### Return Type
+
 Returns JSONB with quota information:
+
 ```json
 {
   "used": 3,
@@ -1005,8 +1104,9 @@ Returns JSONB with quota information:
 ```
 
 #### Utilized Types
+
 ```typescript
-import type { AIQuotaDTO } from '@/types';
+import type { AIQuotaDTO } from "@/types";
 ```
 
 #### Business Logic
@@ -1061,7 +1161,7 @@ BEGIN
   -- Check limit
   IF v_used >= 5 THEN
     RAISE EXCEPTION 'daily ai generation limit exceeded (5/day)'
-      USING 
+      USING
         ERRCODE = 'P0001',
         HINT = format('Limit resets at %s', v_reset_at);
   END IF;
@@ -1091,21 +1191,25 @@ GRANT EXECUTE ON FUNCTION public.consume_ai_generation() TO authenticated;
 #### Security Considerations
 
 **SECURITY DEFINER:**
+
 - Runs with creator privileges
 - Direct table access (bypasses RLS)
 - Automatic user isolation via `auth.uid()`
 
 **Authorization:**
+
 - Implicit: uses `auth.uid()` for user identification
 - No cross-user access possible
 - No additional checks needed
 
 **Atomic Operations:**
+
 - UPSERT prevents race conditions
 - Row-level locking ensures consistency
 - Transaction guarantees atomicity
 
 **Rate Limit Enforcement:**
+
 - Hard limit at database level
 - Cannot be bypassed by client
 - Resistant to concurrent request attacks
@@ -1113,20 +1217,22 @@ GRANT EXECUTE ON FUNCTION public.consume_ai_generation() TO authenticated;
 #### Error Handling
 
 **Rate Limit Exceeded:**
+
 ```sql
 RAISE EXCEPTION 'daily ai generation limit exceeded (5/day)'
-  USING 
+  USING
     ERRCODE = 'P0001',
     HINT = format('Limit resets at %s', v_reset_at);
 ```
 
 **Client Handling:**
+
 ```typescript
 try {
-  const { data } = await supabase.rpc('consume_ai_generation');
+  const { data } = await supabase.rpc("consume_ai_generation");
   console.log(`Remaining: ${data.remaining}`);
 } catch (error) {
-  if (error.code === 'P0001') {
+  if (error.code === "P0001") {
     // Extract reset_at from hint
     showRateLimitError(error.hint);
   }
@@ -1136,21 +1242,25 @@ try {
 #### Performance Considerations
 
 **Concurrent Access:**
+
 - Row-level lock prevents race conditions
 - Other users not blocked
 - < 10ms typical execution
 
 **Index Usage:**
+
 - Primary key `(user_id, day_utc)` for fast lookup
 - Single-row operation
 - No table scan
 
 **Write Volume:**
+
 - 1 write per generation attempt
 - Max 5 writes per user per day
 - Negligible load
 
 **Daily Cleanup:**
+
 - Old records auto-expire (optional cleanup job)
 - Keep last 30 days for audit purposes
 - No manual deletion needed
@@ -1158,13 +1268,13 @@ try {
 #### Usage Example
 
 **Check Quota Before AI Call:**
+
 ```typescript
 async function checkAIQuota(): Promise<AIQuotaDTO> {
-  const { data, error } = await supabase
-    .rpc('consume_ai_generation');
+  const { data, error } = await supabase.rpc("consume_ai_generation");
 
   if (error) {
-    if (error.code === 'P0001') {
+    if (error.code === "P0001") {
       throw new RateLimitError(error.message, error.hint);
     }
     throw error;
@@ -1175,6 +1285,7 @@ async function checkAIQuota(): Promise<AIQuotaDTO> {
 ```
 
 **Display Quota in UI:**
+
 ```typescript
 const quota = await checkAIQuota();
 console.log(`${quota.remaining} generations remaining today`);
@@ -1215,11 +1326,13 @@ These endpoints are managed by Supabase Auth and require configuration, not cust
 #### POST /auth/v1/magiclink
 
 **Configuration Required:**
+
 - Enable magic link in Supabase dashboard
 - Configure email templates
 - Set redirect URL for callback
 
 **Email Template Variables:**
+
 ```html
 <h2>Log in to Word Lists</h2>
 <p>Click the link below to log in:</p>
@@ -1228,46 +1341,51 @@ These endpoints are managed by Supabase Auth and require configuration, not cust
 ```
 
 **Rate Limiting:**
+
 - 3 requests per email per 60 seconds (built-in)
 - 10 requests per IP per 60 seconds (built-in)
 
 **Client Usage:**
+
 ```typescript
 const { error } = await supabase.auth.signInWithOtp({
-  email: 'user@example.com',
+  email: "user@example.com",
   options: {
-    emailRedirectTo: `${window.location.origin}/auth/callback`
-  }
+    emailRedirectTo: `${window.location.origin}/auth/callback`,
+  },
 });
 ```
 
 #### GET /auth/v1/callback
 
 **Configuration Required:**
+
 - Set authorized redirect URLs in Supabase dashboard
 - Add `${APP_URL}/auth/callback` to allowed URLs
 
 **Implementation:** Create page at `src/pages/auth/callback.astro`
+
 ```astro
 ---
 const { searchParams } = Astro.url;
-const token = searchParams.get('token');
-const type = searchParams.get('type');
+const token = searchParams.get("token");
+const type = searchParams.get("type");
 
-if (token && type === 'magiclink') {
+if (token && type === "magiclink") {
   // Supabase client will automatically handle token exchange
   // Redirect to dashboard
-  return Astro.redirect('/dashboard');
+  return Astro.redirect("/dashboard");
 }
 
 // Error case
-return Astro.redirect('/login?error=invalid_token');
+return Astro.redirect("/login?error=invalid_token");
 ---
 ```
 
 #### POST /auth/v1/logout
 
 **Client Usage:**
+
 ```typescript
 await supabase.auth.signOut();
 // Redirect to login page
@@ -1276,8 +1394,12 @@ await supabase.auth.signOut();
 #### POST /auth/v1/user
 
 **Client Usage:**
+
 ```typescript
-const { data: { user }, error } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error,
+} = await supabase.auth.getUser();
 ```
 
 ### 4.2 Profile Management
@@ -1317,31 +1439,25 @@ USING (user_id = auth.uid());
 #### Client Usage Examples
 
 **GET Profile:**
+
 ```typescript
-const { data, error } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('user_id', user.id)
-  .single();
+const { data, error } = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
 ```
 
 **POST Profile:**
+
 ```typescript
-const { data, error } = await supabase
-  .from('profiles')
-  .insert({
-    theme_preference: 'dark',
-    locale: 'pl-PL',
-    timezone: 'Europe/Warsaw'
-  });
+const { data, error } = await supabase.from("profiles").insert({
+  theme_preference: "dark",
+  locale: "pl-PL",
+  timezone: "Europe/Warsaw",
+});
 ```
 
 **PATCH Profile:**
+
 ```typescript
-const { data, error } = await supabase
-  .from('profiles')
-  .update({ theme_preference: 'light' })
-  .eq('user_id', user.id);
+const { data, error } = await supabase.from("profiles").update({ theme_preference: "light" }).eq("user_id", user.id);
 ```
 
 ### 4.3 List Management
@@ -1403,56 +1519,60 @@ EXECUTE FUNCTION check_lists_limit();
 #### Client Usage Examples
 
 **GET Lists (Dashboard):**
+
 ```typescript
 const { data, error } = await supabase
-  .from('lists')
-  .select('*')
-  .order('last_accessed_at', { ascending: false, nullsFirst: false })
+  .from("lists")
+  .select("*")
+  .order("last_accessed_at", { ascending: false, nullsFirst: false })
   .limit(50);
 ```
 
 **GET Single List with Items:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('lists')
-  .select(`
+  .from("lists")
+  .select(
+    `
     *,
     items:list_items(*)
-  `)
-  .eq('id', listId)
-  .order('position', { foreignTable: 'list_items' })
+  `
+  )
+  .eq("id", listId)
+  .order("position", { foreignTable: "list_items" })
   .single();
 ```
 
 **POST List:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('lists')
+  .from("lists")
   .insert({
-    name: 'My Animals',
-    source: 'manual',
-    category: null
+    name: "My Animals",
+    source: "manual",
+    category: null,
   })
   .select()
   .single();
 ```
 
 **PATCH List:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('lists')
-  .update({ name: 'Updated Name' })
-  .eq('id', listId)
+  .from("lists")
+  .update({ name: "Updated Name" })
+  .eq("id", listId)
   .select()
   .single();
 ```
 
 **DELETE List:**
+
 ```typescript
-const { error } = await supabase
-  .from('lists')
-  .delete()
-  .eq('id', listId);
+const { error } = await supabase.from("lists").delete().eq("id", listId);
 ```
 
 ### 4.4 List Items Management
@@ -1537,7 +1657,7 @@ BEGIN
   -- If list has been tested, prevent modification
   IF v_first_tested_at IS NOT NULL THEN
     RAISE EXCEPTION 'cannot modify list items after first test has been completed'
-      USING 
+      USING
         ERRCODE = 'P0001',
         HINT = 'list has been tested and is now locked';
   END IF;
@@ -1583,57 +1703,52 @@ EXECUTE FUNCTION normalize_display_text();
 #### Client Usage Examples
 
 **GET Items:**
+
 ```typescript
-const { data, error } = await supabase
-  .from('list_items')
-  .select('*')
-  .eq('list_id', listId)
-  .order('position');
+const { data, error } = await supabase.from("list_items").select("*").eq("list_id", listId).order("position");
 ```
 
 **POST Item:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('list_items')
+  .from("list_items")
   .insert({
     list_id: listId,
     position: 3,
-    display: 'Elephant'
+    display: "Elephant",
   })
   .select()
   .single();
 ```
 
 **POST Multiple Items (Batch):**
+
 ```typescript
 const items = words.map((word, index) => ({
   list_id: listId,
   position: index + 1,
-  display: word
+  display: word,
 }));
 
-const { data, error } = await supabase
-  .from('list_items')
-  .insert(items)
-  .select();
+const { data, error } = await supabase.from("list_items").insert(items).select();
 ```
 
 **PATCH Item:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('list_items')
-  .update({ display: 'African Elephant', position: 5 })
-  .eq('id', itemId)
+  .from("list_items")
+  .update({ display: "African Elephant", position: 5 })
+  .eq("id", itemId)
   .select()
   .single();
 ```
 
 **DELETE Item:**
+
 ```typescript
-const { error } = await supabase
-  .from('list_items')
-  .delete()
-  .eq('id', itemId);
+const { error } = await supabase.from("list_items").delete().eq("id", itemId);
 ```
 
 ### 4.5 Test Management
@@ -1659,32 +1774,34 @@ USING (user_id = auth.uid());
 #### Client Usage Examples
 
 **GET Test History (All):**
+
 ```typescript
 const { data, error } = await supabase
-  .from('tests')
-  .select('*')
-  .eq('user_id', user.id)
-  .order('completed_at', { ascending: false })
+  .from("tests")
+  .select("*")
+  .eq("user_id", user.id)
+  .order("completed_at", { ascending: false })
   .limit(20);
 ```
 
 **GET Test History (By List):**
+
 ```typescript
 const { data, error } = await supabase
-  .from('tests')
-  .select('*')
-  .eq('list_id', listId)
-  .order('completed_at', { ascending: false });
+  .from("tests")
+  .select("*")
+  .eq("list_id", listId)
+  .order("completed_at", { ascending: false });
 ```
 
 **Submit Test (via RPC):**
+
 ```typescript
-const { data, error } = await supabase
-  .rpc('complete_test', {
-    p_list_id: listId,
-    p_correct: 17,
-    p_wrong: 3
-  });
+const { data, error } = await supabase.rpc("complete_test", {
+  p_list_id: listId,
+  p_correct: 17,
+  p_wrong: 3,
+});
 ```
 
 ---
@@ -1696,16 +1813,19 @@ const { data, error } = await supabase
 **Location:** `src/middleware/index.ts`
 
 ```typescript
-import type { MiddlewareHandler } from 'astro';
+import type { MiddlewareHandler } from "astro";
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
   const { supabase } = context.locals;
 
   // Get authenticated user
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error) {
-    console.error('[Auth Middleware Error]', error);
+    console.error("[Auth Middleware Error]", error);
   }
 
   // Attach user to context
@@ -1718,6 +1838,7 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 ### 5.2 Service Layer Pattern
 
 **Structure:**
+
 ```
 src/lib/services/
   ├── ai-generator.ts    # OpenRouter.ai integration
@@ -1729,20 +1850,21 @@ src/lib/services/
 ```
 
 **Example Service:**
+
 ```typescript
 // src/lib/services/lists.ts
-import type { SupabaseClient } from '@/db/supabase.client';
-import type { ListWithItemsDTO } from '@/types';
+import type { SupabaseClient } from "@/db/supabase.client";
+import type { ListWithItemsDTO } from "@/types";
 
 export class ListService {
   constructor(private supabase: SupabaseClient) {}
 
   async getListWithItems(listId: string): Promise<ListWithItemsDTO> {
     const { data, error } = await this.supabase
-      .from('lists')
-      .select('*, items:list_items(*)')
-      .eq('id', listId)
-      .order('position', { foreignTable: 'list_items' })
+      .from("lists")
+      .select("*, items:list_items(*)")
+      .eq("id", listId)
+      .order("position", { foreignTable: "list_items" })
       .single();
 
     if (error) throw error;
@@ -1750,8 +1872,7 @@ export class ListService {
   }
 
   async touchList(listId: string): Promise<void> {
-    const { error } = await this.supabase
-      .rpc('touch_list', { p_list_id: listId });
+    const { error } = await this.supabase.rpc("touch_list", { p_list_id: listId });
 
     if (error) throw error;
   }
@@ -1761,6 +1882,7 @@ export class ListService {
 ### 5.3 Validation with Zod
 
 **Structure:**
+
 ```
 src/lib/validation/
   ├── ai.ts           # AI generation schemas
@@ -1771,19 +1893,14 @@ src/lib/validation/
 ```
 
 **Example Schema:**
+
 ```typescript
 // src/lib/validation/ai.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const GenerateListRequestSchema = z.object({
-  category: z.enum([
-    'animals',
-    'food',
-    'household_items',
-    'transport',
-    'jobs'
-  ]),
-  count: z.number().int().min(10).max(50)
+  category: z.enum(["animals", "food", "household_items", "transport", "jobs"]),
+  count: z.number().int().min(10).max(50),
 });
 
 export function validateGenerateListRequest(data: unknown) {
@@ -1796,7 +1913,7 @@ export function validateGenerateListRequest(data: unknown) {
 **Location:** `src/lib/utils/api-errors.ts`
 
 ```typescript
-import type { ErrorResponse, RateLimitErrorResponse } from '@/types';
+import type { ErrorResponse, RateLimitErrorResponse } from "@/types";
 
 export function errorResponse(
   error: string,
@@ -1807,47 +1924,39 @@ export function errorResponse(
   const body: ErrorResponse = {
     error,
     message,
-    ...(details && { details })
+    ...(details && { details }),
   };
 
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 
-export function validationErrorResponse(
-  message: string,
-  fields: Record<string, string>
-): Response {
-  return errorResponse('validation_error', message, 400, {
+export function validationErrorResponse(message: string, fields: Record<string, string>): Response {
+  return errorResponse("validation_error", message, 400, {
     errors: Object.entries(fields).map(([field, msg]) => ({
       field,
-      message: msg
-    }))
+      message: msg,
+    })),
   });
 }
 
-export function rateLimitErrorResponse(
-  message: string,
-  resetAt: string
-): Response {
+export function rateLimitErrorResponse(message: string, resetAt: string): Response {
   const body: RateLimitErrorResponse = {
-    error: 'rate_limit_exceeded',
+    error: "rate_limit_exceeded",
     message,
-    reset_at: resetAt
+    reset_at: resetAt,
   };
 
   return new Response(JSON.stringify(body), {
     status: 429,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 
-export function unauthorizedResponse(
-  message = 'Authentication required'
-): Response {
-  return errorResponse('unauthorized', message, 401);
+export function unauthorizedResponse(message = "Authentication required"): Response {
+  return errorResponse("unauthorized", message, 401);
 }
 ```
 
@@ -1856,13 +1965,9 @@ export function unauthorizedResponse(
 **Template:** `src/pages/api/[endpoint].ts`
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import {
-  errorResponse,
-  validationErrorResponse,
-  unauthorizedResponse
-} from '@/lib/utils/api-errors';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { errorResponse, validationErrorResponse, unauthorizedResponse } from "@/lib/utils/api-errors";
 
 export const prerender = false;
 
@@ -1888,33 +1993,30 @@ export const POST: APIRoute = async (context) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return validationErrorResponse(
-        'Invalid request data',
-        Object.fromEntries(
-          error.errors.map(e => [e.path.join('.'), e.message])
-        )
+        "Invalid request data",
+        Object.fromEntries(error.errors.map((e) => [e.path.join("."), e.message]))
       );
     }
-    return errorResponse('invalid_json', 'Invalid JSON', 400);
+    return errorResponse("invalid_json", "Invalid JSON", 400);
   }
 
   // Business logic
   try {
     // ... implementation
 
-    return new Response(JSON.stringify({
-      success: true,
-      // ... data
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('[Endpoint Error]', error);
-    return errorResponse(
-      'internal_error',
-      'An error occurred. Please try again.',
-      500
+    return new Response(
+      JSON.stringify({
+        success: true,
+        // ... data
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
     );
+  } catch (error) {
+    console.error("[Endpoint Error]", error);
+    return errorResponse("internal_error", "An error occurred. Please try again.", 500);
   }
 };
 ```
@@ -1924,28 +2026,23 @@ export const POST: APIRoute = async (context) => {
 **Location:** `src/db/supabase.client.ts`
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey
-);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 export type SupabaseClient = typeof supabase;
 ```
 
 **Service Role Client (for admin operations):**
+
 ```typescript
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export const supabaseAdmin = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey
-);
+export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey);
 ```
 
 ---
@@ -1955,6 +2052,7 @@ export const supabaseAdmin = createClient<Database>(
 ### 6.1 Unit Tests
 
 **Test RPC Functions:**
+
 ```sql
 -- Test: touch_list success
 BEGIN;
@@ -1980,32 +2078,33 @@ ROLLBACK;
 ```
 
 **Test API Routes:**
+
 ```typescript
 // src/pages/api/ai/generate-list.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { POST } from './generate-list';
+import { describe, it, expect, vi } from "vitest";
+import { POST } from "./generate-list";
 
-describe('POST /api/ai/generate-list', () => {
-  it('should return 401 when not authenticated', async () => {
+describe("POST /api/ai/generate-list", () => {
+  it("should return 401 when not authenticated", async () => {
     const context = {
       locals: { user: null, supabase: mockSupabase },
-      request: new Request('http://localhost/api/ai/generate-list', {
-        method: 'POST',
-        body: JSON.stringify({ category: 'animals', count: 20 })
-      })
+      request: new Request("http://localhost/api/ai/generate-list", {
+        method: "POST",
+        body: JSON.stringify({ category: "animals", count: 20 }),
+      }),
     };
 
     const response = await POST(context);
     expect(response.status).toBe(401);
   });
 
-  it('should return 400 for invalid category', async () => {
+  it("should return 400 for invalid category", async () => {
     const context = {
       locals: { user: mockUser, supabase: mockSupabase },
-      request: new Request('http://localhost/api/ai/generate-list', {
-        method: 'POST',
-        body: JSON.stringify({ category: 'invalid', count: 20 })
-      })
+      request: new Request("http://localhost/api/ai/generate-list", {
+        method: "POST",
+        body: JSON.stringify({ category: "invalid", count: 20 }),
+      }),
     };
 
     const response = await POST(context);
@@ -2019,59 +2118,57 @@ describe('POST /api/ai/generate-list', () => {
 ### 6.2 Integration Tests
 
 **Test Complete Flow:**
+
 ```typescript
-describe('AI List Generation Flow', () => {
-  it('should generate, save, and test a list', async () => {
+describe("AI List Generation Flow", () => {
+  it("should generate, save, and test a list", async () => {
     // 1. Login
     const { user } = await supabase.auth.signInWithOtp({
-      email: 'test@example.com'
+      email: "test@example.com",
     });
 
     // 2. Generate list
-    const generateResponse = await fetch('/api/ai/generate-list', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${user.access_token}` },
-      body: JSON.stringify({ category: 'animals', count: 20 })
+    const generateResponse = await fetch("/api/ai/generate-list", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${user.access_token}` },
+      body: JSON.stringify({ category: "animals", count: 20 }),
     });
     expect(generateResponse.status).toBe(200);
     const { items } = await generateResponse.json();
 
     // 3. Save list
     const { data: list } = await supabase
-      .from('lists')
-      .insert({ name: 'Test Animals', source: 'ai', category: 'animals' })
+      .from("lists")
+      .insert({ name: "Test Animals", source: "ai", category: "animals" })
       .select()
       .single();
 
     // 4. Save items
-    await supabase
-      .from('list_items')
-      .insert(items.map((item, i) => ({
+    await supabase.from("list_items").insert(
+      items.map((item, i) => ({
         list_id: list.id,
         position: i + 1,
-        display: item.display
-      })));
+        display: item.display,
+      }))
+    );
 
     // 5. Complete test
-    const { data: test } = await supabase
-      .rpc('complete_test', {
-        p_list_id: list.id,
-        p_correct: 18,
-        p_wrong: 2
-      });
+    const { data: test } = await supabase.rpc("complete_test", {
+      p_list_id: list.id,
+      p_correct: 18,
+      p_wrong: 2,
+    });
 
     expect(test.score).toBe(90);
 
     // 6. Verify list locked
-    const { error } = await supabase
-      .from('list_items')
-      .insert({
-        list_id: list.id,
-        position: 21,
-        display: 'New Item'
-      });
+    const { error } = await supabase.from("list_items").insert({
+      list_id: list.id,
+      position: 21,
+      display: "New Item",
+    });
 
-    expect(error.code).toBe('P0001');
+    expect(error.code).toBe("P0001");
   });
 });
 ```
@@ -2079,6 +2176,7 @@ describe('AI List Generation Flow', () => {
 ### 6.3 Critical Path Checklist
 
 **Must-Pass Tests:**
+
 1. ✓ Magic link login → session creation → authenticated request
 2. ✓ Create manual list → add items → save
 3. ✓ Generate AI list → save → verify quota consumed
@@ -2123,6 +2221,7 @@ done
 ## 7. Implementation Checklist
 
 ### Phase 1: Database Setup
+
 - [ ] Create all database tables (migration)
 - [ ] Create enum types
 - [ ] Add constraints and checks
@@ -2134,11 +2233,13 @@ done
 - [ ] Test migrations on local Supabase
 
 ### Phase 2: Type System
+
 - [ ] Generate database types (`supabase gen types typescript`)
 - [ ] Review and validate `src/types.ts`
 - [ ] Ensure all DTOs align with API spec
 
 ### Phase 3: Core Infrastructure
+
 - [ ] Set up Supabase client (`src/db/supabase.client.ts`)
 - [ ] Create authentication middleware (`src/middleware/index.ts`)
 - [ ] Create validation schemas (`src/lib/validation/`)
@@ -2146,6 +2247,7 @@ done
 - [ ] Set up environment variables
 
 ### Phase 4: Services Layer
+
 - [ ] Create AI generator service (`src/lib/services/ai-generator.ts`)
 - [ ] Create AI quota service (`src/lib/services/ai-quota.ts`)
 - [ ] Create account service (`src/lib/services/account.ts`)
@@ -2153,6 +2255,7 @@ done
 - [ ] Create test service (`src/lib/services/tests.ts`)
 
 ### Phase 5: Custom API Endpoints
+
 - [ ] Implement POST /api/ai/generate-list
 - [ ] Implement DELETE /api/account
 - [ ] Test endpoints with Postman/curl
@@ -2160,12 +2263,14 @@ done
 - [ ] Add logging
 
 ### Phase 6: Frontend Integration
+
 - [ ] Create auth callback page (`src/pages/auth/callback.astro`)
 - [ ] Create API client hooks (React Query)
 - [ ] Implement authentication flow
 - [ ] Test all user flows
 
 ### Phase 7: Testing
+
 - [ ] Write unit tests for services
 - [ ] Write integration tests for API routes
 - [ ] Write SQL tests for RPC functions
@@ -2173,6 +2278,7 @@ done
 - [ ] Perform load testing (optional)
 
 ### Phase 8: Deployment Preparation
+
 - [ ] Set up environment variables in production
 - [ ] Configure Supabase production instance
 - [ ] Set up CI/CD pipeline (GitHub Actions)
@@ -2195,12 +2301,14 @@ done
 ## Notes
 
 **Key Implementation Priorities:**
+
 1. Database schema and RPC functions (foundation)
 2. Authentication and middleware (security)
 3. Custom API endpoints (core features)
 4. Testing (quality assurance)
 
 **Common Pitfalls to Avoid:**
+
 - Forgetting to enable RLS on tables
 - Not granting execute permissions on RPC functions
 - Mixing client and service role incorrectly
@@ -2209,6 +2317,7 @@ done
 - Missing index creation
 
 **Development Workflow:**
+
 1. Start local Supabase: `npx supabase start`
 2. Run migrations: `npx supabase db push`
 3. Generate types: `npx supabase gen types typescript`
@@ -2217,6 +2326,7 @@ done
 6. Run tests: `npm test`
 
 **Useful Commands:**
+
 ```bash
 # Generate database types
 npx supabase gen types typescript --local > src/db/database.types.ts

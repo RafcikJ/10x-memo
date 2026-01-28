@@ -138,15 +138,7 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
   // Completed state
   if (state === "completed") {
     const score = Math.floor((correct / totalQuestions) * 100);
-    return (
-      <TestResultSummary
-        correct={correct}
-        wrong={wrong}
-        total={totalQuestions}
-        score={score}
-        listId={listId}
-      />
-    );
+    return <TestResultSummary correct={correct} wrong={wrong} total={totalQuestions} score={score} listId={listId} />;
   }
 
   // Question/Feedback state
@@ -169,11 +161,7 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
       </div>
 
       {/* Question */}
-      <QuestionCard
-        word={currentQuestion.word}
-        questionNumber={currentIndex + 1}
-        totalQuestions={totalQuestions}
-      />
+      <QuestionCard word={currentQuestion.word} questionNumber={currentIndex + 1} totalQuestions={totalQuestions} />
 
       {/* Answer Options */}
       <div className="space-y-4">
@@ -192,9 +180,7 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
       </div>
 
       {/* Feedback Overlay */}
-      {state === "feedback" && (
-        <FlashFeedback isCorrect={lastAnswerCorrect} onComplete={handleFeedbackComplete} />
-      )}
+      {state === "feedback" && <FlashFeedback isCorrect={lastAnswerCorrect} onComplete={handleFeedbackComplete} />}
     </div>
   );
 }

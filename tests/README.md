@@ -39,6 +39,7 @@ Ten folder zawiera narzędzia do testowania serwisu `ai-quota.ts` za pomocą Pos
 Otwórz plik `postman-curl-examples.md` i kopiuj przykładowe komendy.
 
 Pamiętaj, aby ustawić zmienne:
+
 ```bash
 export BASE_URL="http://localhost:4321"
 export AUTH_TOKEN="twój_token_tutaj"
@@ -51,6 +52,7 @@ Token `auth_token` jest potrzebny do autoryzacji żądań API.
 ### Metoda 1: Z przeglądarki (najprostsze)
 
 1. Uruchom aplikację lokalnie:
+
    ```bash
    npm run dev
    ```
@@ -86,9 +88,12 @@ Token `auth_token` jest potrzebny do autoryzacji żądań API.
 ### Metoda 3: Programowo (dla deweloperów)
 
 Dodaj tymczasowo w kodzie aplikacji:
+
 ```javascript
-const { data: { session } } = await supabase.auth.getSession();
-console.log('Token:', session?.access_token);
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+console.log("Token:", session?.access_token);
 ```
 
 ## 📋 Struktura kolekcji Postmana
@@ -96,11 +101,13 @@ console.log('Token:', session?.access_token);
 Kolekcja zawiera 4 foldery z testami:
 
 ### 1. Sukces - Generowanie listy (7 requestów)
+
 - Testuje wszystkie kategorie: animals, food, household_items, transport, jobs
 - Testuje różne liczby: min (10), max (50), średnie (15-30)
 - **Wszystkie powinny zwrócić 200 OK** (jeśli nie przekroczono limitu)
 
 ### 2. Błędy walidacji - 400 (7 requestów)
+
 - Nieprawidłowa kategoria
 - Count poniżej/powyżej limitu
 - Nieprawidłowy JSON
@@ -108,11 +115,13 @@ Kolekcja zawiera 4 foldery z testami:
 - **Wszystkie powinny zwrócić 400 Bad Request**
 
 ### 3. Błędy autoryzacji - 401 (2 requesty)
+
 - Brak tokenu
 - Nieprawidłowy token
 - **Wszystkie powinny zwrócić 401 Unauthorized**
 
 ### 4. Test Rate Limit - 429 (6 requestów)
+
 - Requesty 1-5: **Powinny zwrócić 200 OK**
 - Request 6: **Powinien zwrócić 429 Too Many Requests**
 
@@ -121,6 +130,7 @@ Kolekcja zawiera 4 foldery z testami:
 ### Podstawowy test flow:
 
 1. **Sprawdź, czy aplikacja działa:**
+
    ```bash
    curl http://localhost:4321
    ```
@@ -153,9 +163,10 @@ Kolekcja zawiera 4 foldery z testami:
 
 ### Resetowanie limitu:
 
-Limit resetuje się **o północy UTC**. 
+Limit resetuje się **o północy UTC**.
 
 Aby przetestować ponownie przed północą:
+
 1. Otwórz **Supabase Dashboard**
 2. Idź do **Table Editor** → `ai_usage_daily`
 3. **Usuń** rekord dla swojego użytkownika
@@ -164,6 +175,7 @@ Aby przetestować ponownie przed północą:
 ## 📊 Oczekiwane odpowiedzi
 
 ### ✅ Sukces (200 OK)
+
 ```json
 {
   "success": true,
@@ -176,6 +188,7 @@ Aby przetestować ponownie przed północą:
 ```
 
 ### ❌ Błąd walidacji (400)
+
 ```json
 {
   "error": "validation_error",
@@ -187,6 +200,7 @@ Aby przetestować ponownie przed północą:
 ```
 
 ### ❌ Brak autoryzacji (401)
+
 ```json
 {
   "error": "unauthorized",
@@ -195,6 +209,7 @@ Aby przetestować ponownie przed północą:
 ```
 
 ### ❌ Przekroczenie limitu (429)
+
 ```json
 {
   "error": "rate_limit_exceeded",
@@ -209,6 +224,7 @@ Aby przetestować ponownie przed północą:
 ### Problem: Wszystkie requesty zwracają 401
 
 **Rozwiązanie:**
+
 - Sprawdź, czy token jest prawidłowy
 - Sprawdź, czy token nie wygasł (tokeny Supabase wygasają po 1 godzinie)
 - Zaloguj się ponownie i pobierz nowy token
@@ -216,12 +232,14 @@ Aby przetestować ponownie przed północą:
 ### Problem: Request 1/5 zwraca 429
 
 **Rozwiązanie:**
+
 - Już wykorzystałeś dzienny limit
 - Poczekaj do północy UTC lub usuń rekord z `ai_usage_daily` w Supabase
 
 ### Problem: 500 Internal Server Error
 
 **Rozwiązanie:**
+
 - Sprawdź logi serwera (terminal gdzie działa `npm run dev`)
 - Sprawdź, czy masz ustawione zmienne środowiskowe:
   - `OPENROUTER_API_KEY`
@@ -231,6 +249,7 @@ Aby przetestować ponownie przed północą:
 ### Problem: Connection refused
 
 **Rozwiązanie:**
+
 - Upewnij się, że aplikacja działa: `npm run dev`
 - Sprawdź, czy port 4321 jest wolny
 

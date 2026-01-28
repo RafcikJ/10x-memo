@@ -92,9 +92,7 @@ GRANT EXECUTE ON FUNCTION public.consume_ai_generation() TO authenticated;
 
 -- Add function comment for documentation
 COMMENT ON FUNCTION public.consume_ai_generation() IS 
-  'Atomically checks and consumes one AI generation quota. ' ||
-  'Enforces 5 generations per user per UTC day. ' ||
-  'Raises P0001 exception if limit exceeded.';
+  'Atomically checks and consumes one AI generation quota. Enforces 5 generations per user per UTC day. Raises P0001 exception if limit exceeded.';
 
 -- ============================================================================
 -- Verification

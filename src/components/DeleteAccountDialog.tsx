@@ -137,11 +137,7 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
           <Button onClick={handleClose} variant="outline" disabled={isDeleting}>
             Anuluj
           </Button>
-          <Button
-            onClick={handleDelete}
-            variant="destructive"
-            disabled={isDeleting || confirmation !== "USUŃ"}
-          >
+          <Button onClick={handleDelete} variant="destructive" disabled={isDeleting || confirmation !== "USUŃ"}>
             {isDeleting ? "Usuwam..." : "Usuń konto"}
           </Button>
         </div>

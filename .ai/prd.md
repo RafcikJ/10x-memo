@@ -24,6 +24,7 @@
 </decisions>
 
 <matched_recommendations>
+
 1. Skoncentrowanie się na web-only i szybkim MVP: wybrano web (mobile-first) jako jedyną platformę oraz uproszczony UX (minimal komunikaty, proste flow).
 2. Minimalny model danych + konsekwencja w UI/API: zdefiniowano listę, elementy (display/normalized), wynik testu (lastScore/lastTestedAt + poprawne/błędne), zasady resetu po edycji.
 3. Jeden ekran tworzenia z 2 trybami (AI vs Wklej): ustandaryzowano ścieżki tworzenia, minimalizując liczbę ekranów i złożoność.
@@ -34,10 +35,12 @@
 8. UX onboarding: ekran startowy zależny od zalogowania + „3 kroki” w pustym dashboardzie; CTA prowadzące do flow A.
 9. Priorytetyzacja scope: rozdzielono MUST/SHOULD/WON’T, co stabilizuje zakres PRD.
 10. Jakość release: wymaganie „must-pass checklist” na krytyczne obszary (logowanie, AI, manual, test, reset, delete, dark+A11y).
-</matched_recommendations>
+    </matched_recommendations>
 
 <prd_planning_summary>
+
 ### a) Główne wymagania funkcjonalne (MVP)
+
 - Autoryzacja: email + magic link; ekran oczekiwania z resend; jednorazowy link; TTL sesji ~30 dni; relogin unieważnia stare sesje.
 - Dashboard: lista list (sort „ostatnio używane”), search po nazwie, kafelki z nazwą, liczbą słów, lastScore i lastTestedAt („Nie testowano”).
 - Tworzenie list:
@@ -51,21 +54,23 @@
 - Analityka: eventy pokrywające funnel i użycie (generate/save AI list), tworzenie, testy, usuwanie.
 
 ### b) Kluczowe historie użytkownika i ścieżki
+
 - Flow A (AI):
-  1) Użytkownik loguje się (magic link) → dashboard z „3 krokami”.
-  2) Wybiera „Generuj listę” → wybiera kategorię i liczbę (default 10) → klik „Generuj”.
-  3) Otrzymuje listę, przegląda i ewentualnie edytuje kolejność/pozycje → zapisuje.
-  4) Zapoznaje się z listą (nauka) → przechodzi do testu z widoku listy.
-  5) Po teście widzi wynik (procent, poprawne/błędne) i data jest widoczna w dashboardzie.
+  1. Użytkownik loguje się (magic link) → dashboard z „3 krokami”.
+  2. Wybiera „Generuj listę” → wybiera kategorię i liczbę (default 10) → klik „Generuj”.
+  3. Otrzymuje listę, przegląda i ewentualnie edytuje kolejność/pozycje → zapisuje.
+  4. Zapoznaje się z listą (nauka) → przechodzi do testu z widoku listy.
+  5. Po teście widzi wynik (procent, poprawne/błędne) i data jest widoczna w dashboardzie.
 - Flow B (istniejąca lista → test):
-  1) Użytkownik loguje się → dashboard → wybiera listę.
-  2) Testuje całą listę → widzi wynik.
+  1. Użytkownik loguje się → dashboard → wybiera listę.
+  2. Testuje całą listę → widzi wynik.
 - Manual fallback:
-  1) Tworzenie listy → tryb „Wklej” → wkleja linie → system odrzuca tylko złe linie → zapis → test.
+  1. Tworzenie listy → tryb „Wklej” → wkleja linie → system odrzuca tylko złe linie → zapis → test.
 - Historia:
   - W widoku listy użytkownik klika „Generuj historię” → otrzymuje historię → edytuje/regeneruje; historia nie jest dostępna podczas testu.
 
 ### c) Kryteria sukcesu i pomiar
+
 - Sukces 1: 90% użytkowników ma >5 list.
   - Pomiar: liczba aktualnie istniejących list per user w zdefiniowanym oknie czasowym (np. 30 dni); eventy create_list/list_saved/delete_list + stan w DB.
 - Sukces 2: 70% użytkowników korzysta z list generowanych przez AI.
@@ -77,18 +82,20 @@
   - Retencja (np. aktywni w tygodniu 4 na bazie open_app/test_completed/list_saved).
 
 ### d) Nierozwiązane kwestie / obszary do doprecyzowania
+
 - Provider email: wybór konkretnego dostawcy (SES/SendGrid/Mailgun) i minimalne ustawienia (SPF/DKIM, nadawca).
 - Definicja okna czasowego dla metryk sukcesu (np. 30 dni) i definicja „aktywny użytkownik” do kohort.
 - Dokładna reprezentacja kategorii na dashboardzie: manual listy nie mają kategorii — czy UI pokazuje „—”/puste, czy ukrywa kolumnę/ikonę.
 - Dokładny sposób liczenia „1000 słów” vs. „max znaków” dla historii (masz oba limity: miękki w UI i twardy w DB) — wymaga jednoznacznej specyfikacji w PRD.
 - Wymagania niefunkcjonalne: docelowe SLA (czas generacji AI, czas ładowania dashboardu) i minimalne wymagania kompatybilności przeglądarek.
-</prd_planning_summary>
+  </prd_planning_summary>
 
 <unresolved_issues>
+
 1. Wybór konkretnego providera do wysyłki magic linków (oraz konfiguracja SPF/DKIM i dane nadawcy).
 2. Ustalenie okna czasowego dla metryk sukcesu (np. 30 dni) oraz definicji „aktywny użytkownik” dla kohort.
-4. Sposób prezentacji kategorii dla list manualnych na dashboardzie (brak kategorii w modelu manualnym).
-5. Minimalne wymagania niefunkcjonalne (SLA dla AI, wydajność, kompatybilność przeglądarek) do wpisania w PRD.
-</unresolved_issues>
+3. Sposób prezentacji kategorii dla list manualnych na dashboardzie (brak kategorii w modelu manualnym).
+4. Minimalne wymagania niefunkcjonalne (SLA dla AI, wydajność, kompatybilność przeglądarek) do wpisania w PRD.
+   </unresolved_issues>
 
 </conversation_summary>

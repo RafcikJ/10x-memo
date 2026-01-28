@@ -129,7 +129,10 @@ export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListIte
       )}
 
       {isLocked && (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground" title="Lista zablokowana po pierwszym teście">
+        <div
+          className="flex items-center gap-1 text-xs text-muted-foreground"
+          title="Lista zablokowana po pierwszym teście"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"

@@ -49,6 +49,7 @@ W konsoli zobaczysz:
 ```
 
 Teraz możesz:
+
 - ✅ Wejść na `/dashboard` bez logowania
 - ✅ Tworzyć nowe listy (`/lists/new`)
 - ✅ Testować listy
@@ -72,13 +73,16 @@ Pełna dokumentacja w [`TESTING_MODE.md`](./TESTING_MODE.md)
 ## 🐛 Problemy?
 
 ### Nadal przekierowuje do logowania
+
 - ✅ Sprawdź, czy `DISABLE_AUTH_FOR_TESTING=true` (bez spacji)
 - ✅ Zrestartuj serwer `npm run dev`
 
 ### Błąd zapisu danych
+
 - ✅ Upewnij się, że `TEST_USER_ID` to UUID **istniejącego** użytkownika
 - ✅ Sprawdź czy użytkownik ma uprawnienia RLS w Supabase
 
 ### Pusta strona dashboard
+
 - ✅ To normalne! Użytkownik testowy może nie mieć jeszcze żadnych danych
 - ✅ Stwórz nową listę, aby przetestować funkcjonalność

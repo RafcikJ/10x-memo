@@ -23,9 +23,7 @@
 
   <!-- Textarea -->
   <div class="space-y-2">
-    <label for="paste-text" class="text-sm font-medium leading-none">
-      Wklej swoje słówka
-    </label>
+    <label for="paste-text" class="text-sm font-medium leading-none"> Wklej swoje słówka </label>
     <textarea
       id="paste-text"
       name="text"
@@ -101,10 +99,7 @@
 
   function sanitizeText(text: string): string {
     // Remove potentially dangerous characters
-    return text
-      .replace(/[<>]/g, "")
-      .slice(0, 80)
-      .trim();
+    return text.replace(/[<>]/g, "").slice(0, 80).trim();
   }
 
   function showError(message: string) {

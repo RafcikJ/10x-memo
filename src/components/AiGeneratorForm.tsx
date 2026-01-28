@@ -25,7 +25,7 @@ const CATEGORIES: { value: NounCategory; label: string }[] = [
 type LoadingStep = "connecting" | "generating" | "verifying";
 
 interface AiGeneratorFormProps {
-  onGenerated: (items: GeneratedListItem[]) => void;
+  onGenerated: (items: GeneratedListItem[], category?: NounCategory) => void;
   quotaRemaining: number;
 }
 
@@ -74,7 +74,7 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       const data = await response.json();
-      onGenerated(data.items);
+      onGenerated(data.items, category);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wystąpił nieoczekiwany błąd");
     } finally {

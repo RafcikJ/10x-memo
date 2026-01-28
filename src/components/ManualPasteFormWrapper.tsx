@@ -1,12 +1,79 @@
 /**
  * ManualPasteFormWrapper - React wrapper for ManualPasteForm
  *
- * This component embeds the Astro ManualPasteForm component
- * Since we can't directly render .astro in React, we use dangerouslySetInnerHTML
- * or we keep it as a separate component
+ * This component handles manual text input for list creation
  */
+import { useEffect } from "react";
 
 export default function ManualPasteFormWrapper() {
+  useEffect(() => {
+    const form = document.getElementById("manual-paste-form");
+    const textarea = document.getElementById("paste-text") as HTMLTextAreaElement;
+    const lineCountSpan = document.getElementById("line-count");
+    const errorDiv = document.getElementById("manual-error");
+
+    if (!form || !textarea || !lineCountSpan || !errorDiv) return;
+
+    // Update line count on input
+    const handleInput = () => {
+      const lines = textarea.value.split("\n").filter((line) => line.trim().length > 0);
+      lineCountSpan.textContent = lines.length.toString();
+      errorDiv.classList.add("hidden");
+    };
+
+    // Handle form submission
+    const handleSubmit = async (e: Event) => {
+      e.preventDefault();
+
+      const text = textarea.value.trim();
+      const lines = text.split("\n").filter((line) => line.trim().length > 0);
+
+      // Validation
+      if (lines.length < 5) {
+        showError("Musisz wkleić co najmniej 5 słówek");
+        return;
+      }
+
+      if (lines.length > 200) {
+        showError("Możesz wkleić maksymalnie 200 słówek");
+        return;
+      }
+
+      // Sanitize and prepare items
+      const items = lines.map((line, index) => ({
+        position: index + 1,
+        display: sanitizeText(line.trim()),
+      }));
+
+      // Dispatch custom event with items
+      const event = new CustomEvent("manual-items-generated", {
+        detail: { items },
+      });
+      window.dispatchEvent(event);
+    };
+
+    function sanitizeText(text: string) {
+      return text
+        .replace(/[<>]/g, "")
+        .slice(0, 80)
+        .trim();
+    }
+
+    function showError(message: string) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove("hidden");
+    }
+
+    textarea.addEventListener("input", handleInput);
+    form.addEventListener("submit", handleSubmit);
+
+    // Cleanup
+    return () => {
+      textarea.removeEventListener("input", handleInput);
+      form.removeEventListener("submit", handleSubmit);
+    };
+  }, []);
+
   return (
     <div>
       <form id="manual-paste-form" className="space-y-6">
@@ -54,71 +121,6 @@ export default function ManualPasteFormWrapper() {
           Przetwórz tekst
         </button>
       </form>
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-          (function() {
-            const form = document.getElementById("manual-paste-form");
-            const textarea = document.getElementById("paste-text");
-            const lineCountSpan = document.getElementById("line-count");
-            const errorDiv = document.getElementById("manual-error");
-
-            if (!form || !textarea || !lineCountSpan || !errorDiv) return;
-
-            // Update line count on input
-            textarea.addEventListener("input", () => {
-              const lines = textarea.value.split("\\n").filter((line) => line.trim().length > 0);
-              lineCountSpan.textContent = lines.length.toString();
-              errorDiv.classList.add("hidden");
-            });
-
-            // Handle form submission
-            form.addEventListener("submit", async (e) => {
-              e.preventDefault();
-
-              const text = textarea.value.trim();
-              const lines = text.split("\\n").filter((line) => line.trim().length > 0);
-
-              // Validation
-              if (lines.length < 5) {
-                showError("Musisz wkleić co najmniej 5 słówek");
-                return;
-              }
-
-              if (lines.length > 200) {
-                showError("Możesz wkleić maksymalnie 200 słówek");
-                return;
-              }
-
-              // Sanitize and prepare items
-              const items = lines.map((line, index) => ({
-                position: index + 1,
-                display: sanitizeText(line.trim()),
-              }));
-
-              // Dispatch custom event with items
-              const event = new CustomEvent("manual-items-generated", {
-                detail: { items },
-              });
-              window.dispatchEvent(event);
-            });
-
-            function sanitizeText(text) {
-              return text
-                .replace(/[<>]/g, "")
-                .slice(0, 80)
-                .trim();
-            }
-
-            function showError(message) {
-              errorDiv.textContent = message;
-              errorDiv.classList.remove("hidden");
-            }
-          })();
-        `,
-        }}
-      />
     </div>
   );
 }

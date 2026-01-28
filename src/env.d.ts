@@ -21,8 +21,13 @@ interface ImportMetaEnv {
   readonly PUBLIC_SUPABASE_URL: string;
   readonly PUBLIC_SUPABASE_ANON_KEY: string;
   readonly DISABLE_AUTH_FOR_TESTING?: string;
+  readonly DISABLE_AI_QUOTA_FOR_TESTING?: string;
   readonly TEST_USER_ID?: string;
   readonly TEST_USER_EMAIL?: string;
+  // OpenRouter Chat Configuration
+  readonly OPENROUTER_BASE_URL?: string;
+  readonly OPENROUTER_DEFAULT_MODEL?: string;
+  readonly OPENROUTER_TIMEOUT_MS?: string;
   // more env variables...
 }
 

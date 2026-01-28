@@ -14,7 +14,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
 import { ListHeader } from "../../components/ListHeader";
 import { WordListItem } from "../../components/WordListItem";
 import { StartTestButton } from "../../components/StartTestButton";
-import { QuotaIndicator } from "../../components/QuotaIndicator";
+// import { QuotaIndicator } from "../../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../../components/UserMenu";
 import type { ListWithItemsDTO } from "../../types";
 
@@ -74,7 +74,8 @@ const lastTestedDate = formatDate(list.last_tested_at);
   <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
-  <QuotaIndicator slot="quota-indicator" client:load />
+  <!-- <QuotaIndicator slot="quota-indicator" client:load /> -->
+  <!-- Disabled for MVP -->
 
   <!-- Main Content -->
   <div class="mx-auto max-w-4xl space-y-6">

@@ -12,7 +12,7 @@ import MainLayout from "../layouts/MainLayout.astro";
 import ProfileStats from "../components/ProfileStats.astro";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { DeleteAccountDialog } from "../components/DeleteAccountDialog";
-import { QuotaIndicator } from "../components/QuotaIndicator";
+// import { QuotaIndicator } from "../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../components/UserMenu";
 
 // Check authentication
@@ -50,7 +50,8 @@ const accountCreatedAt = session?.user?.created_at || user.created_at || new Dat
   <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
-  <QuotaIndicator slot="quota-indicator" client:load />
+  <!-- <QuotaIndicator slot="quota-indicator" client:load /> -->
+  <!-- Disabled for MVP -->
 
   <!-- Main Content -->
   <div class="mx-auto max-w-4xl space-y-8">

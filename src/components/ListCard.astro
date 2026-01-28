@@ -31,9 +31,7 @@ const getRelativeTime = (date: string) => {
   return `${Math.floor(diffInDays / 30)} mies. temu`;
 };
 
-const relativeTime = list.last_accessed_at
-  ? getRelativeTime(list.last_accessed_at)
-  : getRelativeTime(list.created_at);
+const relativeTime = list.last_accessed_at ? getRelativeTime(list.last_accessed_at) : getRelativeTime(list.created_at);
 
 // Calculate progress percentage
 const progressPercentage = list.last_score ?? 0;

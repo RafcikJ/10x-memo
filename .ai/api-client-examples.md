@@ -5,23 +5,15 @@
 ### React/TypeScript Example with Error Handling
 
 ```typescript
-import { useState } from 'react';
-import type { 
-  GenerateListRequestDTO, 
-  GenerateListResponseDTO,
-  ErrorResponse,
-  RateLimitErrorResponse 
-} from '@/types';
+import { useState } from "react";
+import type { GenerateListRequestDTO, GenerateListResponseDTO, ErrorResponse, RateLimitErrorResponse } from "@/types";
 
 export function useAIGeneration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetAt, setResetAt] = useState<string | null>(null);
 
-  const generateList = async (
-    category: string, 
-    count: number
-  ): Promise<GenerateListResponseDTO | null> => {
+  const generateList = async (category: string, count: number): Promise<GenerateListResponseDTO | null> => {
     setLoading(true);
     setError(null);
     setResetAt(null);
@@ -29,16 +21,16 @@ export function useAIGeneration() {
     try {
       const requestBody: GenerateListRequestDTO = {
         category: category as any,
-        count
+        count,
       };
 
-      const response = await fetch('/api/ai/generate-list', {
-        method: 'POST',
+      const response = await fetch("/api/ai/generate-list", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include', // Include session cookies
-        body: JSON.stringify(requestBody)
+        credentials: "include", // Include session cookies
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -65,20 +57,19 @@ export function useAIGeneration() {
 
       // Handle unauthorized
       if (response.status === 401) {
-        setError('Please log in to generate lists');
+        setError("Please log in to generate lists");
         // Redirect to login
-        window.location.href = '/login';
+        window.location.href = "/login";
         return null;
       }
 
       // Handle other errors
       const errorData = data as ErrorResponse;
-      setError(errorData.message || 'Failed to generate list');
+      setError(errorData.message || "Failed to generate list");
       return null;
-
     } catch (err) {
-      console.error('Generation error:', err);
-      setError('Network error. Please check your connection.');
+      console.error("Generation error:", err);
+      setError("Network error. Please check your connection.");
       return null;
     } finally {
       setLoading(false);
@@ -89,7 +80,7 @@ export function useAIGeneration() {
     generateList,
     loading,
     error,
-    resetAt
+    resetAt,
   };
 }
 ```
@@ -107,9 +98,9 @@ export function AIGeneratorForm() {
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = await generateList(category, count);
-    
+
     if (result) {
       setGeneratedItems(result.items);
       // Show success message
@@ -120,8 +111,8 @@ export function AIGeneratorForm() {
   return (
     <div>
       <form onSubmit={handleGenerate}>
-        <select 
-          value={category} 
+        <select
+          value={category}
           onChange={(e) => setCategory(e.target.value)}
           disabled={loading}
         >
@@ -175,32 +166,34 @@ export function AIGeneratorForm() {
 ### Checking Quota Before Generation
 
 ```typescript
-import { supabaseClient } from '@/db/supabase.client';
-import type { AIQuotaDTO } from '@/types';
+import { supabaseClient } from "@/db/supabase.client";
+import type { AIQuotaDTO } from "@/types";
 
 export async function checkQuota(): Promise<AIQuotaDTO | null> {
   try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
+
     if (!user) return null;
 
-    const today = new Date().toISOString().split('T')[0];
-    
+    const today = new Date().toISOString().split("T")[0];
+
     const { data, error } = await supabaseClient
-      .from('ai_usage_daily')
-      .select('used')
-      .eq('user_id', user.id)
-      .eq('day_utc', today)
+      .from("ai_usage_daily")
+      .select("used")
+      .eq("user_id", user.id)
+      .eq("day_utc", today)
       .maybeSingle();
 
     if (error) {
-      console.error('Failed to check quota:', error);
+      console.error("Failed to check quota:", error);
       return null;
     }
 
     const used = data?.used || 0;
     const remaining = Math.max(0, 5 - used);
-    
+
     // Calculate next UTC midnight
     const tomorrow = new Date();
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
@@ -210,10 +203,10 @@ export async function checkQuota(): Promise<AIQuotaDTO | null> {
       used,
       remaining,
       limit: 5,
-      reset_at: tomorrow.toISOString()
+      reset_at: tomorrow.toISOString(),
     };
   } catch (err) {
-    console.error('Quota check error:', err);
+    console.error("Quota check error:", err);
     return null;
   }
 }
@@ -256,7 +249,7 @@ export function QuotaDisplay() {
         <span>Used: {quota.used}/{quota.limit}</span>
         <span>Remaining: {quota.remaining}</span>
       </div>
-      
+
       {quota.remaining === 0 && (
         <p className="quota-depleted">
           Daily limit reached. Resets at:{' '}
@@ -266,9 +259,9 @@ export function QuotaDisplay() {
 
       {/* Progress bar */}
       <div className="progress-bar">
-        <div 
+        <div
           className="progress-fill"
-          style={{ 
+          style={{
             width: `${(quota.used / quota.limit) * 100}%`,
             backgroundColor: quota.remaining > 0 ? 'green' : 'red'
           }}
@@ -287,32 +280,26 @@ export function handleAPIError(response: Response, data: any) {
     case 400:
       // Validation error
       const validationErrors = data.details?.errors || [];
-      const errorMessages = validationErrors
-        .map((e: any) => `${e.field}: ${e.message}`)
-        .join('\n');
+      const errorMessages = validationErrors.map((e: any) => `${e.field}: ${e.message}`).join("\n");
       throw new Error(errorMessages || data.message);
 
     case 401:
       // Unauthorized - redirect to login
-      window.location.href = '/login?redirect=' + window.location.pathname;
-      throw new Error('Authentication required');
+      window.location.href = "/login?redirect=" + window.location.pathname;
+      throw new Error("Authentication required");
 
     case 429:
       // Rate limit
       const resetTime = new Date(data.reset_at).toLocaleString();
-      throw new Error(
-        `${data.message}\nLimit resets at ${resetTime}`
-      );
+      throw new Error(`${data.message}\nLimit resets at ${resetTime}`);
 
     case 500:
       // Server error
       const retryAfter = data.retry_after || 30;
-      throw new Error(
-        `${data.message}\nPlease try again in ${retryAfter} seconds.`
-      );
+      throw new Error(`${data.message}\nPlease try again in ${retryAfter} seconds.`);
 
     default:
-      throw new Error(data.message || 'An unexpected error occurred');
+      throw new Error(data.message || "An unexpected error occurred");
   }
 }
 ```
@@ -371,7 +358,7 @@ export function AIGeneratorWithToasts() {
   return (
     <div>
       {/* Form UI */}
-      <button 
+      <button
         onClick={() => handleGenerate('animals', 20)}
         disabled={loading}
       >
@@ -393,15 +380,16 @@ export function AIGeneratorWithToasts() {
 ## Testing Tips
 
 1. **Mock the API during development:**
+
 ```typescript
 // Mock successful response
 const mockResponse: GenerateListResponseDTO = {
   success: true,
   items: [
-    { position: 1, display: 'Cat' },
-    { position: 2, display: 'Dog' },
+    { position: 1, display: "Cat" },
+    { position: 2, display: "Dog" },
     // ... more items
-  ]
+  ],
 };
 
 // Use in tests or development

@@ -15,18 +15,21 @@ const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
 const REQUEST_TIMEOUT_MS = 30000; // 30 seconds
 
 /**
- * Category-specific prompts for AI generation
- * Optimized to produce clean, educational word lists
+ * Universal prompt template for AI generation
+ * Uses {count} and {category} placeholders for dynamic content
  */
-const CATEGORY_PROMPTS: Record<NounCategory, string> = {
-  animals:
-    "Generate a list of {count} common animal names in English. Include both domestic and wild animals. Return only the animal names, one per line, without numbers or additional text. Examples: Cat, Dog, Elephant, Lion.",
-  food: "Generate a list of {count} common food items in English. Include fruits, vegetables, and prepared dishes. Return only the food names, one per line, without numbers or additional text. Examples: Apple, Banana, Pizza, Salad.",
-  household_items:
-    "Generate a list of {count} common household items in English. Include furniture, appliances, and everyday objects. Return only the item names, one per line, without numbers or additional text. Examples: Chair, Table, Lamp, Refrigerator.",
-  transport:
-    "Generate a list of {count} common modes of transportation in English. Include vehicles and public transport. Return only the transport names, one per line, without numbers or additional text. Examples: Car, Bus, Bicycle, Train.",
-  jobs: "Generate a list of {count} common job titles in English. Include various professions and occupations. Return only the job titles, one per line, without numbers or additional text. Examples: Teacher, Doctor, Engineer, Chef.",
+const PROMPT_TEMPLATE =
+  "Jesteś asystentem generującym listy polskich rzeczowników z wybranej kategorii. Zawsze wybieraj słowa wyłącznie z ustalonej, tematycznej puli dla kategorii {category}, a następnie losowo je dobieraj i mieszaj, aby wynik był możliwie inny przy każdym uruchomieniu. Zwracaj dokładnie {count} słów (jeśli pula ma mniej pozycji, zwróć całą pulę w losowej kolejności). Wypisz tylko słowa: jedno w wierszu, bez numerowania, nagłówków, znaków specjalnych i jakiegokolwiek dodatkowego tekstu.";
+
+/**
+ * Category names in Polish for better AI understanding
+ */
+const CATEGORY_NAMES: Record<NounCategory, string> = {
+  animals: "zwierzęta",
+  food: "produkty spożywcze",
+  household_items: "przedmioty domowe",
+  transport: "środki transportu",
+  jobs: "zawody",
 };
 
 /**
@@ -85,7 +88,8 @@ export async function generateWordList(options: GenerateWordListOptions): Promis
   }
 
   // Prepare prompt with category and count
-  const prompt = CATEGORY_PROMPTS[category].replace("{count}", String(count));
+  const categoryName = CATEGORY_NAMES[category];
+  const prompt = PROMPT_TEMPLATE.replace("{count}", String(count)).replace("{category}", categoryName);
 
   // Attempt generation with retry logic
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -185,22 +189,22 @@ async function callOpenRouterAPI(prompt: string, expectedCount: number): Promise
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "HTTP-Referer": import.meta.env.PUBLIC_APP_URL || "http://localhost:4321",
-        "X-Title": "Word List Learning App",
+        "X-Title": "Memo",
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo", // Cost-effective model for simple tasks
+        model: "openai/gpt-4o-mini", // Cost-effective model for simple tasks
         messages: [
           {
             role: "system",
             content:
-              "You are a helpful assistant that generates educational word lists. Output only the requested words, one per line, without any numbering, formatting, or additional text.",
+              "Jesteś pomocnym asystentem, który generuje listy słów edukacyjnych, rzeczowników. Wyświetla tylko żądane słowa, po jednym w wierszu, bez numerowania, formatowania ani dodatkowego tekstu. Język słow powinien być w języku polskim.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        temperature: 0.7,
+        temperature: 0.8,
         max_tokens: 500,
       }),
       signal: controller.signal,
@@ -212,10 +216,14 @@ async function callOpenRouterAPI(prompt: string, expectedCount: number): Promise
 
     const data = await response.json();
 
+    // Log full API response for debugging
+    console.log("[AI Generator] OpenRouter API response:", JSON.stringify(data, null, 2));
+
     // Extract generated text from response
     const generatedText = data.choices?.[0]?.message?.content;
 
     if (!generatedText) {
+      console.error("[AI Generator] No content in response. Full data:", data);
       throw new Error("No content in OpenRouter API response");
     }
 

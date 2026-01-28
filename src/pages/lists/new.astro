@@ -10,7 +10,7 @@
  * - Save list functionality
  */
 import MainLayout from "../../layouts/MainLayout.astro";
-import { QuotaIndicator } from "../../components/QuotaIndicator";
+// import { QuotaIndicator } from "../../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../../components/UserMenu";
 
 // Check authentication
@@ -36,7 +36,8 @@ const quotaRemaining = 5; // Placeholder
   <UserMenu slot="user-menu" userEmail={userEmail} client:load />
 
   <!-- AI Quota Indicator Slot -->
-  <QuotaIndicator slot="quota-indicator" client:load />
+  <!-- <QuotaIndicator slot="quota-indicator" client:load /> -->
+  <!-- Disabled for MVP -->
 
   <!-- Main Content -->
   <div class="mx-auto max-w-4xl space-y-6">

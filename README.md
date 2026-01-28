@@ -42,6 +42,7 @@ This project is an MVP web application focused on **learning and testing ordered
 - **Analytics (minimum events)**: `open_app`, `view_dashboard_empty`, `start_ai_flow`, `ai_generation_failed/succeeded`, `generate_ai_list`, `save_ai_list`, `create_list`, `add_item`, `start_test`, `complete_test`, `list_saved`, `delete_list`, `delete_account`.
 
 Additional project docs:
+
 - **PRD**: `./.ai/prd.md`
 - **Tech notes**: `./.ai/tech-stack.md`
 

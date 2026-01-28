@@ -40,6 +40,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "success": true,
@@ -148,6 +149,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "validation_error",
@@ -171,6 +173,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "validation_error",
@@ -194,6 +197,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "validation_error",
@@ -214,6 +218,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "invalid_json",
@@ -231,6 +236,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "validation_error",
@@ -258,6 +264,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "unauthorized",
@@ -278,6 +285,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 ```
 
 **Oczekiwana odpowiedź:**
+
 ```json
 {
   "error": "unauthorized",
@@ -310,6 +318,7 @@ done
 ```
 
 **Oczekiwana odpowiedź (przy 6. żądaniu):**
+
 ```json
 {
   "error": "rate_limit_exceeded",
@@ -401,24 +410,24 @@ echo ""
 
 for i in {1..6}; do
   echo "--- Request $i/6 ---"
-  
+
   response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$ENDPOINT" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $AUTH_TOKEN" \
     -d "{\"category\": \"animals\", \"count\": 10}")
-  
+
   http_status=$(echo "$response" | grep "HTTP_STATUS" | cut -d: -f2)
   body=$(echo "$response" | sed '/HTTP_STATUS/d')
-  
+
   echo "Status: $http_status"
   echo "Response: $body" | jq '.' 2>/dev/null || echo "$body"
   echo ""
-  
+
   if [ "$http_status" == "429" ]; then
     echo "✓ Rate limit reached at request $i"
     break
   fi
-  
+
   sleep 1
 done
 
@@ -449,6 +458,7 @@ echo "=== Test completed ==="
 ### Debugowanie:
 
 Jeśli napotkasz problemy:
+
 1. Sprawdź logi serwera (konsola gdzie działa dev server)
 2. Użyj `-v` flag w cURL dla szczegółów HTTP
 3. Sprawdź czy aplikacja działa: `curl http://localhost:4321`

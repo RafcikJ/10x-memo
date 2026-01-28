@@ -5,6 +5,7 @@
 ### Prerequisites
 
 1. **Environment Variables** - Create `.env` file with:
+
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
@@ -16,16 +17,19 @@ PUBLIC_APP_URL=http://localhost:4321
 ```
 
 2. **Database Setup** - Run migrations:
+
 ```bash
 npx supabase db push
 ```
 
 3. **Install Dependencies**:
+
 ```bash
 npm install
 ```
 
 4. **Start Dev Server**:
+
 ```bash
 npm run dev
 ```
@@ -61,6 +65,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -75,6 +80,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 #### 3. Test Validation Errors
 
 **Invalid Category:**
+
 ```bash
 curl -X POST "http://localhost:4321/api/ai/generate-list" \
   -H "Content-Type: application/json" \
@@ -86,6 +92,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response (400 Bad Request):**
+
 ```json
 {
   "error": "validation_error",
@@ -102,6 +109,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Invalid Count (too low):**
+
 ```bash
 curl -X POST "http://localhost:4321/api/ai/generate-list" \
   -H "Content-Type: application/json" \
@@ -113,6 +121,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response (400 Bad Request):**
+
 ```json
 {
   "error": "validation_error",
@@ -129,6 +138,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Invalid Count (too high):**
+
 ```bash
 curl -X POST "http://localhost:4321/api/ai/generate-list" \
   -H "Content-Type: application/json" \
@@ -140,6 +150,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response (400 Bad Request):**
+
 ```json
 {
   "error": "validation_error",
@@ -167,6 +178,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response (401 Unauthorized):**
+
 ```json
 {
   "error": "unauthorized",
@@ -204,6 +216,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Expected Response for 6th Request (429 Too Many Requests):**
+
 ```json
 {
   "error": "rate_limit_exceeded",
@@ -228,6 +241,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ### Debugging
 
 **Check Logs:**
+
 ```bash
 # Server logs will show:
 [AI Generate] Request from user: <user-id>
@@ -237,6 +251,7 @@ curl -X POST "http://localhost:4321/api/ai/generate-list" \
 ```
 
 **Check Database:**
+
 ```sql
 -- Check quota usage
 SELECT * FROM ai_usage_daily WHERE user_id = '<user-id>';
@@ -249,6 +264,7 @@ SELECT * FROM ai_usage_daily WHERE user_id = '<user-id>';
 ### Common Issues
 
 **1. OpenRouter API Key Missing:**
+
 ```json
 {
   "error": "ai_service_error",
@@ -256,26 +272,32 @@ SELECT * FROM ai_usage_daily WHERE user_id = '<user-id>';
   "retry_after": 30
 }
 ```
+
 **Solution:** Set `OPENROUTER_API_KEY` in `.env`
 
 **2. Supabase Connection Error:**
+
 ```json
 {
   "error": "quota_check_failed",
   "message": "Failed to verify generation quota. Please try again."
 }
 ```
+
 **Solution:** Check `SUPABASE_URL` and `SUPABASE_KEY` in `.env`
 
 **3. RPC Function Not Found:**
+
 ```
 PostgresError: function public.consume_ai_generation() does not exist
 ```
+
 **Solution:** Run migration: `npx supabase db push`
 
 ### Next Steps
 
 After successful testing:
+
 1. ✅ Verify all validation rules
 2. ✅ Test rate limiting behavior
 3. ✅ Test with different categories

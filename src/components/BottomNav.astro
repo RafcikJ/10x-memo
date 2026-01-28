@@ -1,7 +1,7 @@
 ---
 /**
  * BottomNav - Mobile bottom navigation bar
- * 
+ *
  * Fixed to bottom of screen on mobile devices
  * Icons-only navigation with active state indication
  */
@@ -16,20 +16,20 @@ const navItems = [
     href: "/dashboard",
     label: "Dashboard",
     icon: "home",
-    ariaLabel: "Przejdź do pulpitu"
+    ariaLabel: "Przejdź do pulpitu",
   },
   {
     href: "/lists/new",
     label: "Nowa lista",
     icon: "plus",
-    ariaLabel: "Stwórz nową listę"
+    ariaLabel: "Stwórz nową listę",
   },
   {
     href: "/profile",
     label: "Profil",
     icon: "user",
-    ariaLabel: "Przejdź do profilu"
-  }
+    ariaLabel: "Przejdź do profilu",
+  },
 ];
 
 const isActive = (href: string) => {
@@ -40,78 +40,78 @@ const isActive = (href: string) => {
 };
 ---
 
-<nav 
+<nav
   class="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
   aria-label="Nawigacja główna"
 >
   <div class="flex h-16 items-center justify-around">
-    {navItems.map((item) => (
-      <a
-        href={item.href}
-        class:list={[
-          "flex flex-col items-center justify-center gap-1 px-3 py-2 text-sm font-medium transition-colors",
-          "min-w-[44px] min-h-[44px]", // A11y: Touch target size
-          isActive(item.href)
-            ? "text-primary"
-            : "text-muted-foreground hover:text-foreground"
-        ]}
-        aria-label={item.ariaLabel}
-        aria-current={isActive(item.href) ? "page" : undefined}
-      >
-        {item.icon === "home" && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        )}
-        {item.icon === "plus" && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v8" />
-            <path d="M8 12h8" />
-          </svg>
-        )}
-        {item.icon === "user" && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        )}
-        <span class="text-xs">{item.label}</span>
-      </a>
-    ))}
+    {
+      navItems.map((item) => (
+        <a
+          href={item.href}
+          class:list={[
+            "flex flex-col items-center justify-center gap-1 px-3 py-2 text-sm font-medium transition-colors",
+            "min-w-[44px] min-h-[44px]", // A11y: Touch target size
+            isActive(item.href) ? "text-primary" : "text-muted-foreground hover:text-foreground",
+          ]}
+          aria-label={item.ariaLabel}
+          aria-current={isActive(item.href) ? "page" : undefined}
+        >
+          {item.icon === "home" && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          )}
+          {item.icon === "plus" && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v8" />
+              <path d="M8 12h8" />
+            </svg>
+          )}
+          {item.icon === "user" && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          )}
+          <span class="text-xs">{item.label}</span>
+        </a>
+      ))
+    }
   </div>
 </nav>

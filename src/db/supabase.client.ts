@@ -1,13 +1,13 @@
 /**
  * Supabase Client Configuration
- * 
+ *
  * Exports configured Supabase client instances:
  * - supabaseClient: Public client with anon key (use in most cases)
  * - supabaseAdmin: Service role client for admin operations (use with caution)
  */
 
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../db/database.types.ts';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../db/database.types.ts";
 
 // Environment variables
 const supabaseUrl = import.meta.env.SUPABASE_URL;
@@ -21,8 +21,8 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
 export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 // Type exports for use in services

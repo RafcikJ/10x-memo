@@ -1,6 +1,7 @@
 # Tryb testowy - Wyłączenie autoryzacji
 
 ## ⚠️ OSTRZEŻENIE
+
 **Ten tryb jest przeznaczony TYLKO do testowania lokalnego i developmentu. NIGDY nie włączaj go w produkcji!**
 
 ## Jak włączyć tryb testowy?
@@ -40,6 +41,7 @@ npm run dev
 ### Krok 4: Testuj aplikację
 
 Teraz możesz:
+
 - Wchodzić na chronione strony bez logowania (`/dashboard`, `/profile`, `/lists/new`)
 - Korzystać z API endpointów bez tokenu autoryzacyjnego
 - Testować całą funkcjonalność biznesową jako wybrany użytkownik
@@ -77,7 +79,9 @@ Middleware (`src/middleware/index.ts`) sprawdza zmienną `DISABLE_AUTH_FOR_TESTI
 Wszystkie chronione strony sprawdzają `session` poprzez:
 
 ```typescript
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 ```
 
 W trybie testowym, `context.locals.user` jest już wypełniony, więc możesz normalnie korzystać z aplikacji.
@@ -101,6 +105,7 @@ OPENROUTER_API_KEY=your-api-key
 
 # Tryb testowy (TYLKO development!)
 DISABLE_AUTH_FOR_TESTING=true
+DISABLE_AI_QUOTA_FOR_TESTING=true
 TEST_USER_ID=12345678-1234-1234-1234-123456789abc
 TEST_USER_EMAIL=test@example.com
 ```
@@ -114,11 +119,36 @@ Po uruchomieniu serwera w trybie testowym, w konsoli zobaczysz:
 [Auth Middleware] Using test user: test@example.com (12345678-1234-1234-1234-123456789abc)
 ```
 
+## Wyłączenie limitów AI (dla testów)
+
+### Problem
+
+Domyślnie, każdy użytkownik może wygenerować tylko 5 list AI dziennie. Podczas testowania, ten limit może być problematyczny.
+
+### Rozwiązanie
+
+Dodaj do pliku `.env`:
+
+```env
+DISABLE_AI_QUOTA_FOR_TESTING=true
+```
+
+Zrestartuj serwer. Teraz generowanie list AI będzie:
+
+- ✅ Działać bez limitu (możesz generować nieskończenie wiele list)
+- ✅ Nadal zapisywać statystyki użycia w bazie danych
+- ⚠️ Pokazywać ostrzeżenie w konsoli: "TESTING MODE - AI quota check bypassed!"
+
+### Wyłączenie
+
+Ustaw `DISABLE_AI_QUOTA_FOR_TESTING=false` lub usuń zmienną z `.env`, a następnie zrestartuj serwer.
+
 ## Troubleshooting
 
 ### Problem: Nadal widzę redirect do strony logowania
 
 **Rozwiązanie:**
+
 - Sprawdź, czy zrestartowałeś serwer deweloperski po zmianie `.env`
 - Upewnij się, że `DISABLE_AUTH_FOR_TESTING=true` (bez spacji)
 - Sprawdź, czy plik `.env` jest w głównym katalogu projektu
@@ -126,23 +156,27 @@ Po uruchomieniu serwera w trybie testowym, w konsoli zobaczysz:
 ### Problem: Błąd podczas zapisu danych
 
 **Rozwiązanie:**
+
 - Upewnij się, że `TEST_USER_ID` to UUID **istniejącego** użytkownika w Supabase
 - Sprawdź, czy użytkownik ma odpowiednie uprawnienia w Row Level Security (RLS)
 
 ### Problem: Brak danych użytkownika
 
 **Rozwiązanie:**
+
 - W trybie testowym, aplikacja używa `TEST_USER_ID` - wszystkie dane będą powiązane z tym użytkownikiem
 - Jeśli użytkownik testowy nie ma jeszcze list/danych, dashboard będzie pusty (to normalne)
 
 ## Bezpieczeństwo
 
 ### ✅ Bezpieczne praktyki:
+
 - Używaj tego trybu TYLKO lokalnie na swoim komputerze
 - Nigdy nie commituj pliku `.env` do repozytorium
 - Używaj dedykowanego użytkownika testowego (nie konta produkcyjnego)
 
 ### ❌ Niebezpieczne praktyki:
+
 - Włączanie tego trybu na serwerze produkcyjnym
 - Udostępnianie pliku `.env` z włączonym trybem testowym
 - Używanie konta produkcyjnego jako TEST_USER_ID
