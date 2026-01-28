@@ -14,44 +14,102 @@ import type { ListItemEntity } from "../types";
 interface WordListItemProps {
   item: ListItemEntity;
   isLocked: boolean;
-  onUpdate?: (id: string, newDisplay: string) => void;
-  onDelete?: (id: string) => void;
 }
 
-export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListItemProps) {
+export function WordListItem({ item, isLocked }: WordListItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [tempDisplay, setTempDisplay] = useState(item.display);
+  const [currentDisplay, setCurrentDisplay] = useState(item.display);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
     if (isLocked) return;
-    setTempDisplay(item.display);
+    setTempDisplay(currentDisplay);
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    setTempDisplay(item.display);
+    setTempDisplay(currentDisplay);
     setIsEditing(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = tempDisplay.trim();
 
     if (trimmed.length === 0 || trimmed.length > 80) {
       return;
     }
 
-    if (trimmed === item.display) {
+    if (trimmed === currentDisplay) {
       setIsEditing(false);
       return;
     }
 
-    onUpdate?.(item.id, trimmed);
-    setIsEditing(false);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`/api/lists/${item.list_id}/items/${item.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ display: trimmed }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to update item:", error);
+        alert("Nie udało się zaktualizować słówka. Spróbuj ponownie.");
+        setIsSaving(false);
+        return;
+      }
+
+      const data = await response.json();
+      setCurrentDisplay(data.item.display);
+      setIsEditing(false);
+
+      // Reload page to update the list
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to update item:", error);
+      alert("Nie udało się zaktualizować słówka. Spróbuj ponownie.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (isLocked) return;
-    onDelete?.(item.id);
+
+    const confirmed = confirm("Czy na pewno chcesz usunąć to słówko?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/lists/${item.list_id}/items/${item.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to delete item:", error);
+        alert("Nie udało się usunąć słówka. Spróbuj ponownie.");
+        setIsDeleting(false);
+        return;
+      }
+
+      // Reload page to update the list
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      alert("Nie udało się usunąć słówka. Spróbuj ponownie.");
+      setIsDeleting(false);
+    }
   };
 
   if (isEditing) {
@@ -65,15 +123,16 @@ export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListIte
           maxLength={80}
           className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           autoFocus
+          disabled={isSaving}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
             if (e.key === "Escape") handleCancel();
           }}
         />
-        <Button onClick={handleSave} size="sm" variant="default">
-          Zapisz
+        <Button onClick={handleSave} size="sm" variant="default" disabled={isSaving}>
+          {isSaving ? "Zapisuję..." : "Zapisz"}
         </Button>
-        <Button onClick={handleCancel} size="sm" variant="outline">
+        <Button onClick={handleCancel} size="sm" variant="outline" disabled={isSaving}>
           Anuluj
         </Button>
       </li>
@@ -82,14 +141,14 @@ export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListIte
 
   return (
     <li
-      className={`group flex items-center gap-3 rounded-lg border bg-card p-4 transition-colors ${!isLocked ? "hover:bg-accent/50" : ""}`}
+      className={`group flex items-center gap-3 rounded-lg border bg-card p-4 transition-colors ${!isLocked && !isDeleting ? "hover:bg-accent/50" : ""}`}
     >
       <span className="text-sm font-medium text-muted-foreground">{item.position}.</span>
-      <span className="flex-1">{item.display}</span>
+      <span className="flex-1">{currentDisplay}</span>
 
       {!isLocked && (
         <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-          <Button onClick={handleEdit} size="icon" variant="ghost" title="Edytuj słówko">
+          <Button onClick={handleEdit} size="icon" variant="ghost" title="Edytuj słówko" disabled={isDeleting}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -106,7 +165,7 @@ export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListIte
             </svg>
             <span className="sr-only">Edytuj</span>
           </Button>
-          <Button onClick={handleDelete} size="icon" variant="ghost" title="Usuń słówko">
+          <Button onClick={handleDelete} size="icon" variant="ghost" title="Usuń słówko" disabled={isDeleting}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -123,7 +182,7 @@ export function WordListItem({ item, isLocked, onUpdate, onDelete }: WordListIte
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
             </svg>
-            <span className="sr-only">Usuń</span>
+            <span className="sr-only">{isDeleting ? "Usuwanie..." : "Usuń"}</span>
           </Button>
         </div>
       )}

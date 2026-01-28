@@ -23,7 +23,6 @@ interface TestRunnerProps {
 type TestState = "question" | "feedback" | "completed";
 
 interface Question {
-  word: string;
   correctAnswer: string;
   wrongAnswer: string;
   optionA: string;
@@ -42,18 +41,16 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
 
   // Initialize questions
   useEffect(() => {
-    const shuffledItems = [...items].sort(() => Math.random() - 0.5);
-
-    const generatedQuestions: Question[] = shuffledItems.map((item) => {
-      // Get a random wrong answer from other items
-      const otherItems = items.filter((i) => i.id !== item.id);
+    // Test is sequential in list order (items are already sorted in the page)
+    const generatedQuestions: Question[] = items.map((item, index) => {
+      // Get a random wrong answer from other items (fallback to any other item)
+      const otherItems = items.filter((_, i) => i !== index);
       const wrongItem = otherItems[Math.floor(Math.random() * otherItems.length)];
 
       // Randomize A/B position
       const correctIsA = Math.random() < 0.5;
 
       return {
-        word: item.display,
         correctAnswer: item.display,
         wrongAnswer: wrongItem.display,
         optionA: correctIsA ? item.display : wrongItem.display,
@@ -67,6 +64,8 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
+  const lastIndicatedWord = currentIndex === 0 ? null : (items[currentIndex - 1]?.display ?? null);
+  const prompt = currentIndex === 0 ? "Pierwszy element listy" : "Następny element listy";
 
   const handleAnswer = (selectedIsA: boolean) => {
     if (!currentQuestion) return;
@@ -161,7 +160,7 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
       </div>
 
       {/* Question */}
-      <QuestionCard word={currentQuestion.word} questionNumber={currentIndex + 1} totalQuestions={totalQuestions} />
+      <QuestionCard prompt={prompt} questionNumber={currentIndex + 1} totalQuestions={totalQuestions} />
 
       {/* Answer Options */}
       <div className="space-y-4">
@@ -178,6 +177,14 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
           disabled={state === "feedback"}
         />
       </div>
+
+      {/* Last indicated item (shown under answer tiles) */}
+      {lastIndicatedWord && (
+        <div className="rounded-lg border bg-card p-4 text-center">
+          <div className="text-sm text-muted-foreground">Ostatnio wskazane</div>
+          <div className="mt-1 text-lg font-semibold">{lastIndicatedWord}</div>
+        </div>
+      )}
 
       {/* Feedback Overlay */}
       {state === "feedback" && <FlashFeedback isCorrect={lastAnswerCorrect} onComplete={handleFeedbackComplete} />}

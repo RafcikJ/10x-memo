@@ -48,23 +48,29 @@ export function ListHeader({ initialName, listId, isLocked, onNameUpdate }: List
     setIsSaving(true);
 
     try {
-      // TODO: Implement API call to update list name
-      const response = await fetch(`/rest/v1/lists?id=eq.${listId}`, {
+      const response = await fetch(`/api/lists/${listId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Prefer: "return=representation",
         },
         body: JSON.stringify({ name: trimmed }),
       });
 
-      if (response.ok) {
-        setName(trimmed);
-        setIsEditing(false);
-        onNameUpdate?.(trimmed);
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to update list name:", error);
+        alert("Nie udało się zaktualizować nazwy listy. Spróbuj ponownie.");
+        setIsSaving(false);
+        return;
       }
+
+      const data = await response.json();
+      setName(data.list.name);
+      setIsEditing(false);
+      onNameUpdate?.(data.list.name);
     } catch (error) {
       console.error("Failed to update list name:", error);
+      alert("Nie udało się zaktualizować nazwy listy. Spróbuj ponownie.");
     } finally {
       setIsSaving(false);
     }

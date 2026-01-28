@@ -3,12 +3,13 @@
  * ListCard - Interactive list tile component
  *
  * Features:
- * - Header: name + badge (AI/Manual)
+ * - Header: name
  * - Body: word count + flag icon
  * - Footer: progress bar + relative time
  * - Dropdown menu with actions
  */
 import type { ListDTO } from "../types";
+import { ListCardActions } from "./ListCardActions";
 
 interface Props {
   list: ListDTO;
@@ -40,20 +41,10 @@ const progressPercentage = list.last_score ?? 0;
 <article
   class="group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:bg-accent/50"
 >
-  <a href={`/lists/${list.id}`} class="flex flex-col p-6">
+  <a href={`/lists/${list.id}/test`} class="flex flex-col p-6 pr-12">
     <!-- Header -->
-    <div class="mb-4 flex items-start justify-between">
-      <h3 class="text-lg font-semibold leading-tight">{list.name}</h3>
-      <span
-        class:list={[
-          "ml-2 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
-          list.source === "ai"
-            ? "bg-primary/10 text-primary ring-primary/20"
-            : "bg-secondary text-secondary-foreground ring-secondary",
-        ]}
-      >
-        {list.source === "ai" ? "AI" : "Manual"}
-      </span>
+    <div class="mb-4 flex items-start">
+      <h3 class="min-w-0 flex-1 truncate text-lg font-semibold leading-tight">{list.name}</h3>
     </div>
 
     <!-- Body -->
@@ -131,26 +122,6 @@ const progressPercentage = list.last_score ?? 0;
 
   <!-- Actions Dropdown (Desktop: on hover, Mobile: always visible) -->
   <div class="absolute right-4 top-4 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-    <!-- TODO: Implement dropdown menu with actions (Test, Edit, Delete) -->
-    <button
-      class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-      aria-label="Opcje listy"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="12" cy="12" r="1"></circle>
-        <circle cx="12" cy="5" r="1"></circle>
-        <circle cx="12" cy="19" r="1"></circle>
-      </svg>
-    </button>
+    <ListCardActions listId={list.id} listName={list.name} client:load />
   </div>
 </article>
