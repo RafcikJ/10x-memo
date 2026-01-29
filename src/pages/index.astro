@@ -5,20 +5,72 @@
  * Logic:
  * - If user is authenticated -> Redirect to /dashboard
  * - If not authenticated -> Show login form with hero section
+ * - Handle error messages from auth flow
  */
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/HeroSection.astro";
-import AuthForm from "../components/AuthForm.astro";
+import { AuthForm } from "../components/AuthForm";
 
-// Check for existing session
+// ============================================================================
+// Check authentication status
+// ============================================================================
+
 const {
   data: { session },
+  error: sessionError,
 } = await Astro.locals.supabase.auth.getSession();
+
+if (sessionError) {
+  console.error("[index] Session check error:", sessionError);
+}
 
 // Redirect authenticated users to dashboard
 if (session) {
   return Astro.redirect("/dashboard", 302);
 }
+
+// ============================================================================
+// Extract parameters for UI
+// ============================================================================
+
+// Intended redirect after successful auth
+const redirectTo = Astro.url.searchParams.get("redirect") ?? "/dashboard";
+
+// Error messages from auth flow (e.g., expired link, failed callback)
+const errorParam = Astro.url.searchParams.get("error");
+const errorDescription = Astro.url.searchParams.get("error_description");
+
+// Account deleted confirmation
+const accountDeleted = Astro.url.searchParams.get("deleted") === "true";
+
+// Map error codes to user-friendly messages
+let errorMessage: string | null = null;
+if (errorParam) {
+  switch (errorParam) {
+    case "link_expired":
+      errorMessage = "Link wygasł. Poproś o nowy link do logowania.";
+      break;
+    case "link_used":
+      errorMessage = "Ten link został już użyty. Poproś o nowy link jeśli chcesz się zalogować ponownie.";
+      break;
+    case "exchange_failed":
+      errorMessage = "Nie udało się dokończyć logowania. Spróbuj ponownie.";
+      break;
+    case "no_session":
+      errorMessage = "Nie udało się utworzyć sesji. Spróbuj ponownie.";
+      break;
+    case "unexpected":
+      errorMessage = "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";
+      break;
+    default:
+      errorMessage = errorDescription || "Wystąpił błąd podczas logowania.";
+  }
+}
+
+// Success message for account deletion
+const successMessage = accountDeleted
+  ? "Twoje konto zostało trwale usunięte. Możesz utworzyć nowe konto w dowolnym momencie."
+  : null;
 ---
 
 <Layout title="Memo - Ucz się języków szybciej">
@@ -26,6 +78,63 @@ if (session) {
     <div class="w-full max-w-6xl space-y-12">
       <!-- Hero Section -->
       <HeroSection />
+
+      <!-- Success/Error Messages -->
+      {
+        successMessage && (
+          <div class="mx-auto max-w-2xl rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
+            <div class="flex items-start gap-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="mt-0.5 text-green-600 dark:text-green-400"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-green-800 dark:text-green-200">{successMessage}</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        errorMessage && (
+          <div class="mx-auto max-w-2xl rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <div class="flex items-start gap-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="mt-0.5 text-destructive"
+                aria-hidden="true"
+              >
+                <path d="M12 9v4" />
+                <path d="M12 17h.01" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-destructive">{errorMessage}</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       <!-- Divider -->
       <div class="relative">
@@ -39,7 +148,7 @@ if (session) {
 
       <!-- Auth Form -->
       <div class="flex justify-center">
-        <AuthForm />
+        <AuthForm client:load redirectTo={redirectTo} />
       </div>
     </div>
   </div>

@@ -188,7 +188,7 @@ async function callOpenRouterAPI(prompt: string, expectedCount: number): Promise
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": import.meta.env.PUBLIC_APP_URL || "http://localhost:4321",
+        "HTTP-Referer": import.meta.env.PUBLIC_APP_URL || "http://localhost:3000",
         "X-Title": "Memo",
       },
       body: JSON.stringify({

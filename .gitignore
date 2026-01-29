@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # supabase local scratch snippets
 supabase/snippets/
+
+# Cursor (local MCP config can contain machine-specific settings / secrets)
+.cursor/mcp.json

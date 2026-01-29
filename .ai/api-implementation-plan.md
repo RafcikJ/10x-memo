@@ -1328,17 +1328,28 @@ These endpoints are managed by Supabase Auth and require configuration, not cust
 **Configuration Required:**
 
 - Enable magic link in Supabase dashboard
-- Configure email templates
+- Configure email templates (customowy template w `.ai/email-templates/`)
 - Set redirect URL for callback
 
-**Email Template Variables:**
+**Email Template:**
 
-```html
-<h2>Log in to Word Lists</h2>
-<p>Click the link below to log in:</p>
-<p><a href="{{ .ConfirmationURL }}">Log in</a></p>
-<p>This link expires in 1 hour.</p>
-```
+**UWAGA:** Używamy customowego template HTML dopasowanego do jasnej wersji strony.
+
+**Kluczowe cechy:**
+
+- ✅ Design zgodny z aplikacją (biały + czarny)
+- ✅ Responsywny layout (mobile + desktop)
+- ✅ **BRAK kodu OTP** - tylko magic link (zgodnie z PRD)
+- ✅ Przycisk CTA + fallback link tekstowy
+- ✅ Info box z ważnymi informacjami (1h ważności, jednorazowy)
+
+**Lokalizacja template:** `.ai/email-templates/magic-link.html`  
+**Instrukcje wdrożenia:** `.ai/email-templates/QUICKSTART.md`
+
+**Zmienne używane w template:**
+
+- `{{ .ConfirmationURL }}` - Magic link URL (TYLKO ta zmienna)
+- ❌ `{{ .Token }}` - NIE używamy (celowo ukryty kod OTP)
 
 **Rate Limiting:**
 

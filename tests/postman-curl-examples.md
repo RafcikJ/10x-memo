@@ -8,7 +8,7 @@ Przed rozpoczęciem testów ustaw następujące zmienne:
 
 ```bash
 # URL aplikacji (development)
-BASE_URL="http://localhost:4321"
+BASE_URL="http://localhost:3000"
 
 # Token autoryzacji Supabase
 # Musisz się zalogować w aplikacji i skopiować token z session storage/cookies
@@ -375,7 +375,7 @@ curl -X POST "${BASE_URL}/api/ai/generate-list" \
 
 1. Utwórz nową kolekcję: **AI Quota Tests**
 2. Dodaj zmienne środowiskowe:
-   - `base_url`: `http://localhost:4321`
+   - `base_url`: `http://localhost:3000`
    - `auth_token`: (twój token)
 3. Dodaj requesty z powyższych przykładów
 4. W URL użyj: `{{base_url}}/api/ai/generate-list`
@@ -401,7 +401,7 @@ Aby przetestować działanie quota, wykonaj następujące kroki:
 ```bash
 #!/bin/bash
 
-BASE_URL="http://localhost:4321"
+BASE_URL="http://localhost:3000"
 AUTH_TOKEN="your_token_here"
 ENDPOINT="${BASE_URL}/api/ai/generate-list"
 
@@ -461,5 +461,5 @@ Jeśli napotkasz problemy:
 
 1. Sprawdź logi serwera (konsola gdzie działa dev server)
 2. Użyj `-v` flag w cURL dla szczegółów HTTP
-3. Sprawdź czy aplikacja działa: `curl http://localhost:4321`
+3. Sprawdź czy aplikacja działa: `curl http://localhost:3000`
 4. Zweryfikuj token autoryzacji w Supabase Dashboard

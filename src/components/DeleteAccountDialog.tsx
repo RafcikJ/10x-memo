@@ -30,23 +30,36 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
     setError(null);
 
     try {
-      // TODO: Implement API call to delete account
-      const response = await fetch("/api/account", {
+      // Call our API endpoint which securely handles the deletion
+      const response = await fetch("/api/auth/delete-account", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ confirmation: "DELETE" }),
+        body: JSON.stringify({ confirmation: "USUŃ" }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        // Redirect to home page after successful deletion
-        window.location.href = "/";
+        // Clear all Supabase cookies to prevent "user doesn't exist" errors
+        document.cookie.split(";").forEach((cookie) => {
+          const name = cookie.split("=")[0].trim();
+          if (name.startsWith("sb-")) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          }
+        });
+
+        // Small delay to ensure cookies are cleared
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Redirect to home page with success message
+        window.location.href = "/?deleted=true";
       } else {
-        const data = await response.json();
         setError(data.message || "Nie udało się usunąć konta");
       }
     } catch (err) {
+      console.error("Delete account error:", err);
       setError("Wystąpił błąd połączenia");
     } finally {
       setIsDeleting(false);
@@ -66,7 +79,13 @@ export function DeleteAccountDialog({ isOpen, onClose }: DeleteAccountDialogProp
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={handleClose} />
+      <button
+        type="button"
+        aria-label="Zamknij okno"
+        className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+        onClick={handleClose}
+        disabled={isDeleting}
+      />
 
       {/* Dialog */}
       <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg">

@@ -13,13 +13,11 @@ import { Button } from "./ui/button";
 import type { NounCategory, GenerateListRequestDTO, GeneratedListItem } from "../types";
 
 const CATEGORIES: { value: NounCategory; label: string }[] = [
-  { value: "food", label: "Jedzenie" },
   { value: "animals", label: "Zwierzęta" },
-  { value: "nature", label: "Natura" },
-  { value: "house", label: "Dom" },
+  { value: "food", label: "Jedzenie" },
+  { value: "household_items", label: "Przedmioty domowe" },
   { value: "transport", label: "Transport" },
-  { value: "people", label: "Ludzie" },
-  { value: "other", label: "Inne" },
+  { value: "jobs", label: "Zawody" },
 ];
 
 type LoadingStep = "connecting" | "generating" | "verifying";
@@ -30,7 +28,7 @@ interface AiGeneratorFormProps {
 }
 
 export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorFormProps) {
-  const [category, setCategory] = useState<NounCategory>("food");
+  const [category, setCategory] = useState<NounCategory>("animals");
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<LoadingStep>("connecting");

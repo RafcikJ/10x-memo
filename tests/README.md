@@ -41,7 +41,7 @@ Otwórz plik `postman-curl-examples.md` i kopiuj przykładowe komendy.
 Pamiętaj, aby ustawić zmienne:
 
 ```bash
-export BASE_URL="http://localhost:4321"
+export BASE_URL="http://localhost:3000"
 export AUTH_TOKEN="twój_token_tutaj"
 ```
 
@@ -57,7 +57,7 @@ Token `auth_token` jest potrzebny do autoryzacji żądań API.
    npm run dev
    ```
 
-2. Otwórz aplikację w przeglądarce: `http://localhost:4321`
+2. Otwórz aplikację w przeglądarce: `http://localhost:3000`
 
 3. **Zaloguj się** do aplikacji
 
@@ -132,7 +132,7 @@ Kolekcja zawiera 4 foldery z testami:
 1. **Sprawdź, czy aplikacja działa:**
 
    ```bash
-   curl http://localhost:4321
+   curl http://localhost:3000
    ```
 
 2. **Uruchom podstawowy request sukcesu** (z folderu 1)

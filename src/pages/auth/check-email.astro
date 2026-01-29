@@ -1,0 +1,39 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { CheckEmailContent } from "../../components/CheckEmailContent";
+
+const email = Astro.url.searchParams.get("email")?.trim() ?? "";
+const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+---
+
+<Layout title="Sprawdź email - Memo">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-6xl space-y-12">
+      <div class="space-y-2 text-center">
+        <h1 class="text-3xl font-bold tracking-tight">Logowanie</h1>
+        <p class="text-muted-foreground">Dokończ logowanie przez link w wiadomości email</p>
+      </div>
+
+      <div class="flex justify-center">
+        {
+          isValidEmail ? (
+            <CheckEmailContent client:load email={email} />
+          ) : (
+            <div class="w-full max-w-md space-y-4">
+              <div class="rounded-lg border bg-background p-4 text-sm">
+                <p class="font-medium">Brak poprawnego adresu email</p>
+                <p class="mt-1 text-muted-foreground">Wróć do strony głównej i wyślij link logowania ponownie.</p>
+              </div>
+              <a
+                href="/"
+                class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Przejdź do logowania
+              </a>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,254 @@
+---
+/**
+ * Auth Callback Page
+ *
+ * Handles OAuth/Magic Link callback from Supabase Auth
+ * Exchanges code for session and creates user profile if new user
+ */
+
+import Layout from "../../layouts/Layout.astro";
+
+// ============================================================================
+// Extract parameters from URL
+// ============================================================================
+
+const redirect = Astro.url.searchParams.get("redirect") ?? "/dashboard";
+const error = Astro.url.searchParams.get("error") ?? Astro.url.searchParams.get("error_code") ?? "";
+const errorDescription = Astro.url.searchParams.get("error_description") ?? "";
+const code = Astro.url.searchParams.get("code") ?? "";
+
+// ============================================================================
+// Helper: Map error codes to user-friendly messages
+// ============================================================================
+
+function friendlyErrorMessage(codeOrError: string): string {
+  const key = codeOrError.toLowerCase();
+  if (key.includes("expired") || key.includes("otp_expired") || key.includes("link_expired")) {
+    return "Link wygasł. Poproś o nowy link do logowania.";
+  }
+  if (key.includes("used") || key.includes("invalid_grant") || key.includes("link_used")) {
+    return "Ten link został już użyty. Jeśli chcesz się zalogować ponownie, poproś o nowy link.";
+  }
+  return "Nie udało się dokończyć logowania. Spróbuj ponownie.";
+}
+
+// ============================================================================
+// Process callback - Exchange code for session
+// ============================================================================
+
+let showError = Boolean(error);
+let showSuccess = false;
+let processedSuccessfully = false;
+
+// Only process if we have a code and no error
+if (code && !error) {
+  try {
+    const { data, error: exchangeError } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
+
+    if (exchangeError) {
+      console.error("[callback] Exchange error:", exchangeError);
+      showError = true;
+
+      // Redirect with error to show in UI
+      return Astro.redirect(
+        `/auth/callback?error=exchange_failed&error_description=${encodeURIComponent(exchangeError.message)}`,
+        302
+      );
+    }
+
+    if (!data.session || !data.user) {
+      console.error("[callback] No session or user after exchange");
+      showError = true;
+      return Astro.redirect("/auth/callback?error=no_session", 302);
+    }
+
+    // ========================================================================
+    // Create user profile if new user
+    // ========================================================================
+
+    const { data: existingProfile } = await Astro.locals.supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .single();
+
+    if (!existingProfile) {
+      // Create new profile with defaults
+      const { error: profileError } = await Astro.locals.supabase.from("profiles").insert({
+        user_id: data.user.id,
+        theme_preference: "system",
+        locale: "pl-PL",
+        timezone: "Europe/Warsaw",
+      });
+
+      if (profileError) {
+        console.error("[callback] Profile creation error:", profileError);
+        // Don't fail auth if profile creation fails - can be created later
+      } else {
+        console.log("[callback] Created profile for new user:", data.user.id);
+      }
+    }
+
+    // ========================================================================
+    // Success - Redirect to intended destination
+    // ========================================================================
+
+    processedSuccessfully = true;
+    console.log("[callback] Auth successful, redirecting to:", redirect);
+
+    // Immediate redirect to dashboard or intended page
+    return Astro.redirect(redirect, 302);
+  } catch (err) {
+    console.error("[callback] Unexpected error:", err);
+    showError = true;
+    return Astro.redirect("/auth/callback?error=unexpected", 302);
+  }
+}
+
+// Show success state if we have code but haven't redirected yet
+showSuccess = !showError && Boolean(code) && !processedSuccessfully;
+---
+
+<Layout title="Logowanie - Memo">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-2xl space-y-8">
+      <div class="space-y-2 text-center">
+        <h1 class="text-3xl font-bold tracking-tight">Logowanie</h1>
+        <p class="text-muted-foreground">Kończymy weryfikację linku…</p>
+      </div>
+
+      {
+        showError ? (
+          <div class="rounded-lg border bg-background p-6">
+            <div class="mb-3 flex items-start gap-3">
+              <div class="mt-0.5 rounded-full bg-destructive/10 p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-destructive"
+                  aria-hidden="true"
+                >
+                  <path d="M12 9v4" />
+                  <path d="M12 17h.01" />
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h2 class="text-lg font-semibold">Nie udało się zalogować</h2>
+                <p class="mt-1 text-sm text-muted-foreground">{friendlyErrorMessage(error)}</p>
+              </div>
+            </div>
+
+            {(errorDescription || error) && (
+              <details class="mt-4 rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">
+                <summary class="cursor-pointer select-none font-medium">Szczegóły</summary>
+                <div class="mt-2 space-y-1">
+                  {error ? (
+                    <div>
+                      <span class="font-medium">Kod:</span> {error}
+                    </div>
+                  ) : null}
+                  {errorDescription ? (
+                    <div>
+                      <span class="font-medium">Opis:</span> {errorDescription}
+                    </div>
+                  ) : null}
+                </div>
+              </details>
+            )}
+
+            <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <a
+                href="/"
+                class="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+              >
+                Wróć do logowania
+              </a>
+            </div>
+          </div>
+        ) : showSuccess ? (
+          <div class="rounded-lg border bg-background p-6">
+            <div class="mb-3 flex items-start gap-3">
+              <div class="mt-0.5 rounded-full bg-primary/10 p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-primary"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h2 class="text-lg font-semibold">Link zweryfikowany</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  Jeśli logowanie przebiegło poprawnie, możesz przejść dalej.
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <a
+                href={redirect}
+                class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Przejdź dalej
+              </a>
+              <a
+                href="/"
+                class="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+              >
+                Strona główna
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div class="rounded-lg border bg-background p-6">
+            <div class="flex items-center gap-3">
+              <svg
+                class="h-5 w-5 animate-spin text-muted-foreground"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p class="text-sm text-muted-foreground">
+                Oczekujemy na dane z linku logowania. Jeśli trafiłeś tu przypadkiem, wróć do strony głównej.
+              </p>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <a
+                href="/"
+                class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Wróć do logowania
+              </a>
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Layout>
