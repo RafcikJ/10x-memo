@@ -57,6 +57,12 @@ Additional project docs:
   - **Supabase** (PostgreSQL + Auth; intended for magic links, DB, and server-side limits)
 - **AI**
   - **OpenRouter** (provider for LLMs used to generate noun lists and mnemonic stories)
+- **Testing**
+  - **Vitest** (unit & component tests with coverage)
+  - **@testing-library/react** + **@testing-library/user-event** (React component testing)
+  - **Playwright** (E2E & API testing)
+  - **MSW** (Mock Service Worker for network mocking)
+  - **@axe-core/playwright** (automated accessibility testing)
 - **Tooling**
   - ESLint + Prettier
   - Husky + lint-staged
@@ -101,13 +107,29 @@ For **development and testing only**, you can bypass authentication to test busi
 
 From `package.json`:
 
+### Development
 - **`npm run dev`**: start Astro dev server
 - **`npm run build`**: build for production
 - **`npm run preview`**: preview the production build locally
 - **`npm run astro`**: run the Astro CLI
+
+### Code Quality
 - **`npm run lint`**: run ESLint
 - **`npm run lint:fix`**: run ESLint with auto-fix
 - **`npm run format`**: run Prettier on the repo
+
+### Testing
+- **`npm run test`**: run unit tests in watch mode
+- **`npm run test:unit`**: run unit tests once
+- **`npm run test:unit:watch`**: run unit tests in watch mode
+- **`npm run test:unit:ui`**: run unit tests with UI
+- **`npm run test:coverage`**: run unit tests with coverage report
+- **`npm run test:e2e`**: run E2E tests with Playwright
+- **`npm run test:e2e:ui`**: run E2E tests with Playwright UI
+- **`npm run test:e2e:debug`**: run E2E tests in debug mode
+- **`npm run test:e2e:report`**: show Playwright test report
+- **`npm run test:all`**: run all tests (unit + E2E)
+- **`npm run playwright:install`**: install Playwright browsers
 
 ## 6. Project scope
 

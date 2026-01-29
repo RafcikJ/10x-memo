@@ -1,0 +1,10 @@
+{
+  "extends": ["../.eslintrc.json"],
+  "env": {
+    "jest": true
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "off"
+  }
+}

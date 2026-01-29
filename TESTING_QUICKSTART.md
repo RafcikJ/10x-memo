@@ -1,88 +1,149 @@
-# Szybki start - Testowanie bez autoryzacji
+# 🚀 Testing Quick Start
 
-## ⏱️ 2 minuty do działającej aplikacji
+Get started with testing in 5 minutes!
 
-### Krok 1: Znajdź ID użytkownika w Supabase
-
-Otwórz **Supabase SQL Editor** i uruchom:
-
-```sql
-SELECT id, email FROM auth.users LIMIT 5;
-```
-
-Skopiuj `id` (UUID) jednego z użytkowników.
-
-### Krok 2: Utwórz plik `.env`
-
-W głównym katalogu projektu utwórz plik `.env` i wklej:
-
-```env
-# Twoje normalne zmienne Supabase
-SUPABASE_URL=https://twoj-projekt.supabase.co
-SUPABASE_KEY=twoj-anon-key
-SUPABASE_SERVICE_ROLE_KEY=twoj-service-role-key
-PUBLIC_SUPABASE_URL=https://twoj-projekt.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=twoj-anon-key
-
-# OpenRouter (jeśli testujesz AI)
-OPENROUTER_API_KEY=twoj-api-key
-
-# ⚡ TRYB TESTOWY
-DISABLE_AUTH_FOR_TESTING=true
-TEST_USER_ID=WKLEJ-TUTAJ-UUID-Z-KROKU-1
-TEST_USER_EMAIL=test@example.com
-```
-
-### Krok 3: Uruchom serwer
+## ⚡ Super Quick Start
 
 ```bash
-npm run dev
+# 1. Run unit tests
+npm run test:unit
+
+# 2. Run tests in watch mode (recommended for development)
+npm run test:unit:watch
+
+# 3. Run tests with UI
+npm run test:unit:ui
 ```
 
-### ✅ Gotowe!
+That's it! You're ready to write tests. 🎉
 
-W konsoli zobaczysz:
+## 📝 Write Your First Test
 
-```
-⚠️  [Auth Middleware] TESTING MODE ACTIVE - Authentication bypassed!
-[Auth Middleware] Using test user: test@example.com (...)
-```
+Create a file `src/components/MyComponent.test.tsx`:
 
-Teraz możesz:
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MyComponent } from './MyComponent';
 
-- ✅ Wejść na `/dashboard` bez logowania
-- ✅ Tworzyć nowe listy (`/lists/new`)
-- ✅ Testować listy
-- ✅ Zarządzać profilem
-- ✅ Używać wszystkich funkcji API
-
-## 🔴 Wyłączanie trybu testowego
-
-W pliku `.env` zmień:
-
-```env
-DISABLE_AUTH_FOR_TESTING=false
+describe('MyComponent', () => {
+  it('should render', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+});
 ```
 
-lub usuń tę linię całkowicie. Potem zrestartuj serwer.
+Run it:
 
-## 📖 Więcej informacji
+```bash
+npm run test:unit
+```
 
-Pełna dokumentacja w [`TESTING_MODE.md`](./TESTING_MODE.md)
+## 🎭 E2E Testing Quick Start
 
-## 🐛 Problemy?
+```bash
+# 1. Build the app
+npm run build
 
-### Nadal przekierowuje do logowania
+# 2. Run E2E tests (will start preview server automatically)
+npm run test:e2e
+```
 
-- ✅ Sprawdź, czy `DISABLE_AUTH_FOR_TESTING=true` (bez spacji)
-- ✅ Zrestartuj serwer `npm run dev`
+## 📚 Example Tests
 
-### Błąd zapisu danych
+Check these files for examples:
 
-- ✅ Upewnij się, że `TEST_USER_ID` to UUID **istniejącego** użytkownika
-- ✅ Sprawdź czy użytkownik ma uprawnienia RLS w Supabase
+- **Unit Tests:** `tests/unit/example.test.tsx`
+- **Service Tests:** `tests/unit/services/example-service.test.ts`
+- **Integration Tests:** `tests/integration/example-integration.test.ts`
+- **E2E Tests:** `tests/e2e/example.spec.ts`
 
-### Pusta strona dashboard
+## 🧰 Useful Commands
 
-- ✅ To normalne! Użytkownik testowy może nie mieć jeszcze żadnych danych
-- ✅ Stwórz nową listę, aby przetestować funkcjonalność
+```bash
+# Unit Tests
+npm run test:unit              # Run once
+npm run test:unit:watch        # Watch mode
+npm run test:unit:ui           # UI mode
+npm run test:coverage          # With coverage
+
+# E2E Tests
+npm run test:e2e               # Run all E2E tests
+npm run test:e2e:ui            # UI mode
+npm run test:e2e:debug         # Debug mode
+npm run test:e2e:report        # View last report
+
+# Run All
+npm run test:all               # Unit + E2E
+```
+
+## 💡 Pro Tips
+
+### For Unit Tests:
+1. Use `it.only()` to run a single test
+2. Use `describe.skip()` to skip a test group
+3. Use `--ui` flag for visual test runner
+4. Use `--coverage` to see what's tested
+
+### For E2E Tests:
+1. Use `--debug` to step through tests
+2. Use `--ui` for interactive mode
+3. Check `playwright-report/` for failure details
+4. Use `page.pause()` to pause during test
+
+## 🗂️ Where to Put Tests
+
+```
+Unit Tests:
+├── tests/unit/                    # General unit tests
+├── tests/unit/components/         # Component tests
+├── tests/unit/services/           # Service/logic tests
+└── src/**/*.test.tsx              # Co-located with components
+
+Integration Tests:
+└── tests/integration/             # Tests with database/APIs
+
+E2E Tests:
+└── tests/e2e/                     # End-to-end tests
+```
+
+## 🎯 Testing Checklist
+
+When writing a new feature:
+
+- [ ] Write unit tests for logic/services
+- [ ] Write component tests for UI
+- [ ] Write integration test if using API/database
+- [ ] Write E2E test for critical user flows
+- [ ] Run `npm run test:all` before committing
+
+## 🔧 Need Help?
+
+- **Full Setup Guide:** [TESTING_ENVIRONMENT.md](./TESTING_ENVIRONMENT.md)
+- **Database Testing:** [tests/TEST_DATABASE.md](./tests/TEST_DATABASE.md)
+- **Environment Setup:** [tests/ENV_SETUP.md](./tests/ENV_SETUP.md)
+- **Detailed Docs:** [tests/TEST_SETUP.md](./tests/TEST_SETUP.md)
+
+## 🐛 Common Issues
+
+### Tests fail with "Cannot find module"
+**Solution:** Check your import paths use `@/` alias
+
+### E2E tests timeout
+**Solution:** Build app first with `npm run build`
+
+### Database tests fail
+**Solution:** Start local Supabase with `npx supabase start`
+
+## 📖 Next Steps
+
+1. ✅ Run example tests to verify setup
+2. ✅ Read through example test files
+3. ✅ Write tests for your first component
+4. ✅ Set up database testing (optional)
+5. ✅ Configure CI/CD to run tests
+
+---
+
+**Happy Testing! 🧪**
