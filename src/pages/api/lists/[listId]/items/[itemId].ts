@@ -290,39 +290,24 @@ export const DELETE: APIRoute = async (context) => {
     // ============================================================================
     // Step 6: Reindex Remaining Items (shift down positions)
     // ============================================================================
+    // Do it manually to keep this endpoint independent from optional RPC functions.
+    const { data: remainingItems, error: fetchError } = await supabase
+      .from("list_items")
+      .select("id, position")
+      .eq("list_id", listId)
+      .gt("position", deletedPosition)
+      .order("position", { ascending: true });
 
-    // Update all items with position > deletedPosition to position - 1
-    const { error: reindexError } = await supabase.rpc("reindex_list_items_after_delete", {
-      p_list_id: listId,
-      p_deleted_position: deletedPosition,
-    });
-
-    // If the RPC function doesn't exist, do it manually
-    if (reindexError && reindexError.message.includes("does not exist")) {
-      console.log("[Delete Item] RPC not found, reindexing manually");
-
-      const { data: remainingItems, error: fetchError } = await supabase
-        .from("list_items")
-        .select("id, position")
-        .eq("list_id", listId)
-        .gt("position", deletedPosition)
-        .order("position", { ascending: true });
-
-      if (fetchError) {
-        console.error("[Delete Item] Failed to fetch items for reindexing:", fetchError);
-        // Don't fail the whole operation, items are deleted but positions might be off
-      } else if (remainingItems && remainingItems.length > 0) {
-        // Update each item's position
-        for (const remainingItem of remainingItems) {
-          await supabase
-            .from("list_items")
-            .update({ position: remainingItem.position - 1 })
-            .eq("id", remainingItem.id);
-        }
-      }
-    } else if (reindexError) {
-      console.error("[Delete Item] Failed to reindex items:", reindexError);
+    if (fetchError) {
+      console.error("[Delete Item] Failed to fetch items for reindexing:", fetchError);
       // Don't fail the whole operation, item is deleted but positions might be off
+    } else if (remainingItems && remainingItems.length > 0) {
+      for (const remainingItem of remainingItems) {
+        await supabase
+          .from("list_items")
+          .update({ position: remainingItem.position - 1 })
+          .eq("id", remainingItem.id);
+      }
     }
 
     console.log(`[Delete Item] Successfully deleted item: ${itemId} and reindexed positions`);

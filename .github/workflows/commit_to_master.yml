@@ -1,0 +1,164 @@
+name: Commit to main (lint + tests)
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: commit-to-main-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node & install
+        uses: ./.github/actions/setup-node-npm-ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Astro type check
+        run: npx astro check --no-interactive
+
+  unit-test:
+    name: Unit tests (coverage)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node & install
+        uses: ./.github/actions/setup-node-npm-ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload unit test coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/
+          retention-days: 7
+
+  e2e-test:
+    name: E2E tests (Playwright)
+    needs: lint
+    runs-on: ubuntu-latest
+    environment: integration
+    env:
+      # App URL
+      PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+
+      # Supabase
+      PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # OpenRouter (AI)
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      # Testing mode flags
+      DISABLE_AUTH_FOR_TESTING: ${{ secrets.DISABLE_AUTH_FOR_TESTING }}
+      DISABLE_AI_QUOTA_FOR_TESTING: ${{ secrets.DISABLE_AI_QUOTA_FOR_TESTING }}
+      TEST_USER_ID: ${{ secrets.TEST_USER_ID }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+
+      # Test users (optional for E2E, but used by shared test config)
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+      TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+
+      # Playwright configuration
+      PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+      PLAYWRIGHT_TIMEOUT: ${{ secrets.PLAYWRIGHT_TIMEOUT }}
+      PLAYWRIGHT_BROWSER: ${{ secrets.PLAYWRIGHT_BROWSER }}
+      PLAYWRIGHT_HEADED: ${{ secrets.PLAYWRIGHT_HEADED }}
+      PLAYWRIGHT_SLOWMO: ${{ secrets.PLAYWRIGHT_SLOWMO }}
+      SAVE_SCREENSHOTS: ${{ secrets.SAVE_SCREENSHOTS }}
+      SAVE_VIDEOS: ${{ secrets.SAVE_VIDEOS }}
+      SAVE_TRACES: ${{ secrets.SAVE_TRACES }}
+
+      # Test DB / debug
+      TEST_DATABASE_NAME: ${{ secrets.TEST_DATABASE_NAME }}
+      TEST_CLEANUP_ENABLED: ${{ secrets.TEST_CLEANUP_ENABLED }}
+      DEBUG: ${{ secrets.DEBUG }}
+      VERBOSE: ${{ secrets.VERBOSE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node & install
+        uses: ./.github/actions/setup-node-npm-ci
+
+      - name: "Install Playwright browsers (from config: chromium)"
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 7
+
+  status-comment:
+    name: Status comment (PR)
+    needs: [lint, unit-test, e2e-test]
+    if: ${{ github.event_name == 'pull_request' && success() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Comment on PR with overall status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) {
+              core.info("No PR number found in event payload; skipping comment.");
+              return;
+            }
+
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              "✅ CI passed",
+              "",
+              "- ✅ Lint",
+              "- ✅ Unit tests (coverage artifact: `unit-coverage`)",
+              "- ✅ E2E tests (artifacts: `playwright-report`, `playwright-test-results`)",
+              "",
+              `Run: ${runUrl}`,
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body,
+            });
+

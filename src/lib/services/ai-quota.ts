@@ -52,7 +52,7 @@ export class RateLimitError extends Error {
  * ```
  */
 export async function consumeAIQuota(supabase: SupabaseClient<Database>): Promise<AIQuotaDTO> {
-  const { data, error } = await supabase.rpc("consume_ai_generation").returns<AIQuotaDTO>();
+  const { data, error } = await supabase.rpc("consume_ai_generation");
 
   // Handle rate limit error (P0001 = raise_exception)
   if (error) {
@@ -70,7 +70,22 @@ export async function consumeAIQuota(supabase: SupabaseClient<Database>): Promis
     throw new Error("No data returned from consume_ai_generation");
   }
 
-  return data;
+  // consume_ai_generation returns jsonb, so we defensively validate/convert
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new Error("Invalid payload returned from consume_ai_generation");
+  }
+
+  const raw = data as Record<string, unknown>;
+  const used = Number(raw.used);
+  const remaining = Number(raw.remaining);
+  const limit = Number(raw.limit);
+  const reset_at = typeof raw.reset_at === "string" ? raw.reset_at : String(raw.reset_at ?? "");
+
+  if (!Number.isFinite(used) || !Number.isFinite(remaining) || !Number.isFinite(limit) || !reset_at) {
+    throw new Error("Malformed quota payload returned from consume_ai_generation");
+  }
+
+  return { used, remaining, limit, reset_at };
 }
 
 /**

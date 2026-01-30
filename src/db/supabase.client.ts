@@ -12,36 +12,47 @@ import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../db/database.types.ts";
 
-// Environment variables
-// Use import.meta.env for Vite/Astro (available at build time)
-// Fallback to process.env for Node.js runtime
-// NOTE:
-// - Frontend/test config uses PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY
-// - Some environments use SUPABASE_URL / SUPABASE_KEY (legacy naming)
-// We support both to make local dev + Playwright E2E deterministic.
-const supabaseUrl =
-  import.meta.env.PUBLIC_SUPABASE_URL ||
-  process.env.PUBLIC_SUPABASE_URL ||
-  import.meta.env.SUPABASE_URL ||
-  process.env.SUPABASE_URL;
+interface SupabaseEnv {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  supabaseServiceRoleKey?: string;
+}
 
-const supabaseAnonKey =
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.PUBLIC_SUPABASE_ANON_KEY ||
-  import.meta.env.SUPABASE_KEY ||
-  process.env.SUPABASE_KEY;
+function readSupabaseEnv(): SupabaseEnv {
+  // Environment variables:
+  // - prefer import.meta.env (Astro/Vite)
+  // - fallback to process.env (Node runtime / tests)
+  // NOTE:
+  // - Frontend/test config uses PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY
+  // - Some environments use SUPABASE_URL / SUPABASE_KEY (legacy naming)
+  const supabaseUrl =
+    import.meta.env.PUBLIC_SUPABASE_URL ||
+    process.env.PUBLIC_SUPABASE_URL ||
+    import.meta.env.SUPABASE_URL ||
+    process.env.SUPABASE_URL;
 
-const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey =
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.PUBLIC_SUPABASE_ANON_KEY ||
+    import.meta.env.SUPABASE_KEY ||
+    process.env.SUPABASE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  // Fail fast with an actionable error message (avoids confusing runtime DB errors)
-  throw new Error(
-    [
-      "[Supabase] Missing configuration.",
-      "Set PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY (recommended),",
-      "or SUPABASE_URL and SUPABASE_KEY (legacy).",
-    ].join(" ")
-  );
+  const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // IMPORTANT: do not throw at module import time.
+    // Astro middleware imports this module during dev server startup, and in CI we
+    // may intentionally not provide Supabase config (e.g. lint/typecheck).
+    throw new Error(
+      [
+        "[Supabase] Missing configuration.",
+        "Set PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY (recommended),",
+        "or SUPABASE_URL and SUPABASE_KEY (legacy).",
+      ].join(" ")
+    );
+  }
+
+  return { supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey };
 }
 
 /**
@@ -81,6 +92,8 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
  * ```
  */
 export function createSupabaseServerClient(cookies: AstroCookies, headers: Headers) {
+  const { supabaseUrl, supabaseAnonKey } = readSupabaseEnv();
+
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -97,13 +110,21 @@ export function createSupabaseServerClient(cookies: AstroCookies, headers: Heade
  * Admin client (bypasses RLS, use only for admin operations)
  * This client should NEVER be exposed to client-side code
  */
-export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+export function createSupabaseAdminClient() {
+  const { supabaseUrl, supabaseServiceRoleKey } = readSupabaseEnv();
+
+  if (!supabaseServiceRoleKey) {
+    throw new Error("[Supabase] Missing SUPABASE_SERVICE_ROLE_KEY for admin client.");
+  }
+
+  return createClient<Database>(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
 
 // Type exports for use in services
 export type SupabaseClient = ReturnType<typeof createSupabaseServerClient>;
-export type SupabaseAdmin = typeof supabaseAdmin;
+export type SupabaseAdmin = ReturnType<typeof createSupabaseAdminClient>;

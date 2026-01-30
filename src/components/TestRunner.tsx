@@ -37,6 +37,7 @@ export function TestRunner({ listId, items }: TestRunnerProps) {
   const [wrong, setWrong] = useState(0);
   const [state, setState] = useState<TestState>("question");
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
+  const [, setIsSubmitting] = useState(false);
 
   // Initialize questions
   useEffect(() => {

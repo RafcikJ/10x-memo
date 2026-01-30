@@ -161,6 +161,8 @@ export const POST: APIRoute = async (context) => {
       list_id: listData.id,
       position: item.position,
       display: item.display.trim(),
+      // DB trigger also normalizes, but DB types require the field on insert
+      normalized: item.display.trim().toLowerCase(),
     }));
 
     const { data: itemsData, error: itemsError } = await supabase.from("list_items").insert(itemsToInsert).select();

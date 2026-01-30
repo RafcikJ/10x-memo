@@ -261,6 +261,7 @@ export type Database = {
         };
       };
       consume_ai_generation: { Args: never; Returns: Json };
+      delete_current_user_account: { Args: never; Returns: undefined };
       touch_list: {
         Args: { p_list_id: string };
         Returns: {

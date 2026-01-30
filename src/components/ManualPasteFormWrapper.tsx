@@ -13,6 +13,7 @@ export default function ManualPasteFormWrapper() {
     const errorDiv = document.getElementById("manual-error");
 
     if (!form || !textarea || !lineCountSpan || !errorDiv) return;
+    const errorDivEl = errorDiv;
 
     // Update line count on input
     const handleInput = () => {
@@ -57,8 +58,8 @@ export default function ManualPasteFormWrapper() {
     }
 
     function showError(message: string) {
-      errorDiv.textContent = message;
-      errorDiv.classList.remove("hidden");
+      errorDivEl.textContent = message;
+      errorDivEl.classList.remove("hidden");
     }
 
     textarea.addEventListener("input", handleInput);

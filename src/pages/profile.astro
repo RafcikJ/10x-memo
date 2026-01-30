@@ -131,6 +131,8 @@ const accountCreatedAt = session?.user?.created_at || user.created_at || new Dat
       dialogContainer = document.createElement("div");
       dialogContainer.id = "delete-account-dialog";
       document.body.appendChild(dialogContainer);
+    }
+    if (!dialogRoot) {
       dialogRoot = createRoot(dialogContainer);
     }
 
