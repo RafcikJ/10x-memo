@@ -100,6 +100,7 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
         </label>
         <select
           id="category"
+          data-test-id="ai-category-select"
           value={category}
           onChange={(e) => setCategory(e.target.value as NounCategory)}
           disabled={loading}
@@ -119,10 +120,13 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
           <label htmlFor="count" className="text-sm font-medium leading-none">
             Liczba słówek
           </label>
-          <span className="text-sm text-muted-foreground">{count}</span>
+          <span className="text-sm text-muted-foreground" data-test-id="ai-word-count-display">
+            {count}
+          </span>
         </div>
         <input
           id="count"
+          data-test-id="ai-word-count-slider"
           type="range"
           min="10"
           max="50"
@@ -139,7 +143,7 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
       </div>
 
       {/* Quota Indicator */}
-      <div className="rounded-lg bg-muted p-3">
+      <div className="rounded-lg bg-muted p-3" data-test-id="ai-quota-indicator">
         <div className="flex items-center gap-2 text-sm">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -157,7 +161,7 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
             <path d="M12 16v-4" />
             <path d="M12 8h.01" />
           </svg>
-          <span>
+          <span data-test-id="ai-quota-remaining">
             Pozostało <strong>{quotaRemaining}/5</strong> generacji na dziś
           </span>
         </div>
@@ -165,13 +169,22 @@ export function AiGeneratorForm({ onGenerated, quotaRemaining }: AiGeneratorForm
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+        <div
+          className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          role="alert"
+          data-test-id="ai-error-message"
+        >
           {error}
         </div>
       )}
 
       {/* Submit Button */}
-      <Button type="submit" disabled={loading || quotaRemaining === 0} className="w-full">
+      <Button
+        type="submit"
+        disabled={loading || quotaRemaining === 0}
+        className="w-full"
+        data-test-id="ai-generate-button"
+      >
         {loading ? (
           <span className="flex items-center gap-2">
             <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -15,9 +15,35 @@ import type { Database } from "../db/database.types.ts";
 // Environment variables
 // Use import.meta.env for Vite/Astro (available at build time)
 // Fallback to process.env for Node.js runtime
-const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY || process.env.SUPABASE_KEY;
-const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+// NOTE:
+// - Frontend/test config uses PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY
+// - Some environments use SUPABASE_URL / SUPABASE_KEY (legacy naming)
+// We support both to make local dev + Playwright E2E deterministic.
+const supabaseUrl =
+  import.meta.env.PUBLIC_SUPABASE_URL ||
+  process.env.PUBLIC_SUPABASE_URL ||
+  import.meta.env.SUPABASE_URL ||
+  process.env.SUPABASE_URL;
+
+const supabaseAnonKey =
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.SUPABASE_KEY ||
+  process.env.SUPABASE_KEY;
+
+const supabaseServiceRoleKey =
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  // Fail fast with an actionable error message (avoids confusing runtime DB errors)
+  throw new Error(
+    [
+      "[Supabase] Missing configuration.",
+      "Set PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY (recommended),",
+      "or SUPABASE_URL and SUPABASE_KEY (legacy).",
+    ].join(" ")
+  );
+}
 
 /**
  * Cookie options for Supabase Auth

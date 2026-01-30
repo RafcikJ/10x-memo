@@ -9,6 +9,7 @@
 - **📝 [Detailed Setup](./TEST_SETUP.md)** - Comprehensive documentation
 - **🗄️ [Database Testing](./TEST_DATABASE.md)** - Supabase testing guide
 - **🔧 [Environment Setup](./ENV_SETUP.md)** - Environment variables
+- **🆘 [Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## 📂 Test Structure
 
@@ -19,6 +20,10 @@ tests/
 │   └── services/           # Service layer tests
 ├── integration/            # Integration tests
 ├── e2e/                    # End-to-end tests
+├── pages/                  # 🆕 Page Object Model (POM)
+│   ├── components/         # Reusable component POMs
+│   ├── README.md          # Full POM documentation
+│   └── QUICKSTART.md      # POM quick start guide
 ├── helpers/                # Test utilities
 ├── mocks/                  # MSW mock handlers
 └── setup/                  # Global setup files
@@ -60,7 +65,7 @@ Check these files for examples:
 - `integration/example-integration.test.ts` - Integration with MSW
 - `integration/supabase.test.ts` - Database testing
 - `e2e/example.spec.ts` - E2E testing patterns
-- `e2e/auth-flow.spec.ts` - Authentication flow testing
+- **🆕 `e2e/ai-list-generation.spec.ts`** - Complete POM-based E2E tests
 
 ## 🛠️ Test Utilities
 
@@ -69,6 +74,7 @@ Check these files for examples:
 
 ### Playwright Testing
 - `helpers/playwright-utils.ts` - E2E test helpers and accessibility checks
+- **🆕 `pages/` - Page Object Model (POM)** - Maintainable E2E page abstractions
 
 ### Supabase Testing
 - `helpers/supabase-test-client.ts` - Database test clients and helpers
@@ -83,15 +89,20 @@ Check these files for examples:
 ### Getting Started
 1. **[Quick Start](../TESTING_QUICKSTART.md)** ⚡ - Start here! (5 min)
 2. **[Getting Started](./GETTING_STARTED.md)** 📖 - Practical guide (20 min)
+3. **🆕 [POM Quick Start](./pages/QUICKSTART.md)** 🎯 - Page Object Model guide (5 min)
+4. **🆕 [Test Config Setup](./ENV_TEST_SETUP.md)** ⚙️ - Environment configuration (10 min)
 
 ### Reference
-3. **[Environment Overview](../TESTING_ENVIRONMENT.md)** 🌍 - What's available
-4. **[Setup Summary](../TESTING_SUMMARY.md)** 📊 - What was done
-5. **[Detailed Setup](./TEST_SETUP.md)** 📝 - Full documentation
+4. **[Environment Overview](../TESTING_ENVIRONMENT.md)** 🌍 - What's available
+5. **[Setup Summary](../TESTING_SUMMARY.md)** 📊 - What was done
+6. **[Detailed Setup](./TEST_SETUP.md)** 📝 - Full documentation
+7. **🆕 [POM Documentation](./pages/README.md)** 📚 - Complete POM API reference
 
 ### Specialized
-6. **[Database Testing](./TEST_DATABASE.md)** 🗄️ - Supabase integration
-7. **[Environment Setup](./ENV_SETUP.md)** 🔧 - Credentials and config
+8. **[Database Testing](./TEST_DATABASE.md)** 🗄️ - Supabase integration
+9. **🆕 [Test Config System](./ENV_TEST_SETUP.md)** ⚙️ - Centralized configuration
+10. **[Environment Setup (Legacy)](./ENV_SETUP.md)** 🔧 - Old credentials guide
+11. **[Troubleshooting](./TROUBLESHOOTING.md)** 🆘 - Common issues and fixes
 
 ## 🎓 Learning Path
 

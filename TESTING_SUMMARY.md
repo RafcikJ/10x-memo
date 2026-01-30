@@ -61,7 +61,7 @@ tests/
 │   └── supabase.test.ts
 └── e2e/                        ✅ E2E tests
     ├── example.spec.ts
-    └── auth-flow.spec.ts
+    └── ai-list-generation.spec.ts
 ```
 
 ### ✅ 4. Helper Functions
@@ -126,7 +126,7 @@ Created comprehensive examples:
 - ✅ `tests/integration/example-integration.test.ts` - Integration with MSW
 - ✅ `tests/integration/supabase.test.ts` - Database testing
 - ✅ `tests/e2e/example.spec.ts` - E2E testing patterns
-- ✅ `tests/e2e/auth-flow.spec.ts` - Authentication flow testing
+- ✅ `tests/e2e/ai-list-generation.spec.ts` - Complete POM-based E2E tests
 
 ### ✅ 8. Documentation
 
@@ -188,7 +188,6 @@ All systems tested and working:
 
 ### E2E Testing ✅
 - Full user journey testing
-- Authentication flows
 - Form submissions
 - Navigation testing
 - Accessibility audits

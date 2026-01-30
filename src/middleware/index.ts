@@ -18,48 +18,34 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // TESTING MODE: Only available in development with explicit env var
   // ============================================================================
 
-  const isTestingMode = import.meta.env.DEV && import.meta.env.DISABLE_AUTH_FOR_TESTING === "true";
+  const isTestingMode = import.meta.env.DEV && process.env.DISABLE_AUTH_FOR_TESTING === "true";
 
   if (isTestingMode) {
     console.warn("⚠️  [Auth Middleware] TESTING MODE ACTIVE (dev only)");
 
-    // Create test user with Supabase Auth for RLS compatibility
-    const desiredEmail = import.meta.env.TEST_USER_EMAIL || "test@example.com";
-    const password = "Test1234!Test1234!";
+    // Create mock test user without Supabase authentication
+    const testUserId = process.env.TEST_USER_ID || "00000000-0000-0000-0000-000000000001";
+    const testUserEmail = process.env.TEST_USER_EMAIL || "test@playwright.test";
 
     if (!cachedTestUser) {
-      // Try to get or create test user
-      const supabase = createSupabaseServerClient(context.cookies, context.request.headers);
-
-      const signIn = await supabase.auth.signInWithPassword({
-        email: desiredEmail,
-        password,
-      });
-
-      if (signIn.data.user) {
-        cachedTestUser = signIn.data.user;
-      } else {
-        // Create test user if doesn't exist
-        const signUp = await supabase.auth.signUp({
-          email: desiredEmail,
-          password,
-        });
-
-        if (signUp.data.user) {
-          cachedTestUser = signUp.data.user;
-        } else {
-          console.error("[Auth Middleware] Failed to create test user:", signUp.error);
-        }
-      }
+      // Create a mock user object that matches Supabase User type
+      cachedTestUser = {
+        id: testUserId,
+        email: testUserEmail,
+        app_metadata: {},
+        user_metadata: {},
+        aud: "authenticated",
+        created_at: new Date().toISOString(),
+      } as User;
+      
+      console.log(`[Auth Middleware] Created mock test user: ${cachedTestUser.email}`);
     }
 
-    // Inject test client and user
+    // Inject test client and mock user
     context.locals.supabase = createSupabaseServerClient(context.cookies, context.request.headers);
     context.locals.user = cachedTestUser;
 
-    if (cachedTestUser) {
-      console.log(`[Auth Middleware] Using test user: ${cachedTestUser.email}`);
-    }
+    console.log(`[Auth Middleware] Using mock test user: ${cachedTestUser.email}`);
 
     return next();
   }

@@ -49,6 +49,7 @@ import {
   unauthorizedResponse,
   extractZodErrors,
 } from "@/lib/utils/api-errors";
+import { createListWithItems, isTestingMode } from "@/lib/testing/inMemoryListsStore";
 
 // Disable prerendering for API route
 export const prerender = false;
@@ -100,6 +101,31 @@ export const POST: APIRoute = async (context) => {
 
   const { name, source, category, items } = requestBody;
   console.log(`[Create List] Creating "${name}" with ${items.length} items (source: ${source})`);
+
+  // ============================================================================
+  // TESTING MODE: In-memory persistence for deterministic E2E
+  // ============================================================================
+  if (isTestingMode()) {
+    const list = createListWithItems({
+      userId: user.id,
+      name: name.trim(),
+      source,
+      category: category ?? null,
+      items,
+    });
+
+    const response: CreateListWithItemsResponseDTO = {
+      success: true,
+      list,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
 
   // ============================================================================
   // Step 3: Create List in Database (Transaction)

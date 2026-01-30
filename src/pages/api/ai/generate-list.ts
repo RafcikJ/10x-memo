@@ -100,7 +100,7 @@ export const POST: APIRoute = async (context) => {
   // Step 3: Check and Consume AI Quota
   // ============================================================================
 
-  const isTestingMode = import.meta.env.DISABLE_AI_QUOTA_FOR_TESTING === "true";
+  const isTestingMode = process.env.DISABLE_AI_QUOTA_FOR_TESTING === "true";
 
   if (isTestingMode) {
     console.warn("⚠️  [AI Generate] TESTING MODE - AI quota check bypassed!");

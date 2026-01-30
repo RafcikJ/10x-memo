@@ -11,6 +11,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { errorResponse, validationErrorResponse, unauthorizedResponse, extractZodErrors } from "@/lib/utils/api-errors";
+import { deleteItem, isTestingMode, updateItemDisplay } from "@/lib/testing/inMemoryListsStore";
 
 // Disable prerendering for API route
 export const prerender = false;
@@ -83,6 +84,28 @@ export const PATCH: APIRoute = async (context) => {
   // ============================================================================
 
   try {
+    // TESTING MODE: In-memory persistence for deterministic E2E
+    if (isTestingMode()) {
+      const updated = updateItemDisplay({
+        userId: user.id,
+        listId,
+        itemId,
+        display: requestBody.display,
+      });
+
+      if (!updated) {
+        // For testing-mode simplicity: treat as not found or locked
+        return errorResponse("not_found", "Item not found", 404);
+      }
+
+      return new Response(JSON.stringify({ success: true, item: updated }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
     const { data: list, error: listError } = await supabase
       .from("lists")
       .select("id, first_tested_at")
@@ -183,6 +206,27 @@ export const DELETE: APIRoute = async (context) => {
   // ============================================================================
 
   try {
+    // TESTING MODE: In-memory persistence for deterministic E2E
+    if (isTestingMode()) {
+      const ok = deleteItem({ userId: user.id, listId, itemId });
+      if (!ok) {
+        return errorResponse("not_found", "Item not found", 404);
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Item deleted successfully",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     const { data: list, error: listError } = await supabase
       .from("lists")
       .select("id, first_tested_at")

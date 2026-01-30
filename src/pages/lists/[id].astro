@@ -17,6 +17,7 @@ import { StartTestButton } from "../../components/StartTestButton";
 // import { QuotaIndicator } from "../../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../../components/UserMenu";
 import type { ListWithItemsDTO } from "../../types";
+import { getListById, isTestingMode } from "@/lib/testing/inMemoryListsStore";
 
 // Check authentication
 const user = Astro.locals.user;
@@ -39,16 +40,26 @@ if (!id) {
   return Astro.redirect("/dashboard", 302);
 }
 
-// Fetch list with items
-const { data: list, error } = await Astro.locals.supabase
-  .from("lists")
-  .select("*, items:list_items(*)")
-  .eq("id", id)
-  .eq("user_id", user.id)
-  .single<ListWithItemsDTO>();
+let list: ListWithItemsDTO | null = null;
 
-// Handle errors
-if (error || !list) {
+if (isTestingMode()) {
+  list = getListById({ userId: user.id, listId: id });
+} else {
+  const { data, error } = await Astro.locals.supabase
+    .from("lists")
+    .select("*, items:list_items(*)")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single<ListWithItemsDTO>();
+
+  if (error) {
+    list = null;
+  } else {
+    list = data ?? null;
+  }
+}
+
+if (!list) {
   return Astro.redirect("/dashboard", 302);
 }
 

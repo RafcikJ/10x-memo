@@ -25,10 +25,10 @@ const hasLists = lists.length > 0;
   !hasLists ? (
     <EmptyDashboard />
   ) : (
-    <div class="space-y-6">
+    <div class="space-y-6" data-test-id="dashboard-grid">
       {/* Sorting Controls */}
       <div class="flex items-center justify-between">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-muted-foreground" data-test-id="dashboard-list-count">
           {lists.length} {lists.length === 1 ? "lista" : lists.length < 5 ? "listy" : "list"}
         </p>
 
@@ -37,7 +37,7 @@ const hasLists = lists.length > 0;
       </div>
 
       {/* Grid */}
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-test-id="dashboard-cards-container">
         {lists.map((list) => (
           <ListCard list={list} itemCount={list.items?.length ?? 0} />
         ))}

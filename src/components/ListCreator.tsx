@@ -120,8 +120,10 @@ export function ListCreator({ quotaRemaining, defaultCategory }: ListCreatorProp
 
       {/* Draft Preview */}
       {draftItems.length > 0 && (
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="mb-4 text-lg font-semibold">Podgląd listy ({draftItems.length} słówek)</h2>
+        <div className="rounded-lg border bg-card p-6" data-test-id="list-preview-section">
+          <h2 className="mb-4 text-lg font-semibold" data-test-id="list-preview-word-count">
+            Podgląd listy ({draftItems.length} słówek)
+          </h2>
 
           {/* List Name Input */}
           <div className="mb-4 space-y-2">
@@ -130,6 +132,7 @@ export function ListCreator({ quotaRemaining, defaultCategory }: ListCreatorProp
             </label>
             <input
               id="list-name"
+              data-test-id="list-name-input"
               type="text"
               value={listName}
               onChange={(e) => setListName(e.target.value)}
@@ -140,9 +143,13 @@ export function ListCreator({ quotaRemaining, defaultCategory }: ListCreatorProp
             <p className="text-xs text-muted-foreground">Pozostaw puste, aby użyć domyślnej nazwy</p>
           </div>
 
-          <div className="mb-4 max-h-96 space-y-2 overflow-y-auto">
+          <div className="mb-4 max-h-96 space-y-2 overflow-y-auto" data-test-id="list-preview-items">
             {draftItems.map((item) => (
-              <div key={item.position} className="flex items-center gap-3 rounded-md bg-muted p-3">
+              <div
+                key={item.position}
+                className="flex items-center gap-3 rounded-md bg-muted p-3"
+                data-test-id={`list-item-${item.position}`}
+              >
                 <span className="text-sm font-medium text-muted-foreground">{item.position}.</span>
                 <span className="flex-1">{item.display}</span>
                 <button
@@ -178,7 +185,11 @@ export function ListCreator({ quotaRemaining, defaultCategory }: ListCreatorProp
 
           {/* Error Message */}
           {saveError && (
-            <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+            <div
+              className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+              role="alert"
+              data-test-id="list-save-error"
+            >
               {saveError}
             </div>
           )}
@@ -186,6 +197,7 @@ export function ListCreator({ quotaRemaining, defaultCategory }: ListCreatorProp
           {/* Save Button */}
           <button
             type="button"
+            data-test-id="list-save-button"
             onClick={handleSaveList}
             disabled={saving || draftItems.length === 0}
             className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"

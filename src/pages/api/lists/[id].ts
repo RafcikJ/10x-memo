@@ -8,6 +8,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { errorResponse, validationErrorResponse, unauthorizedResponse, extractZodErrors } from "@/lib/utils/api-errors";
+import { deleteList, isTestingMode, updateListName } from "@/lib/testing/inMemoryListsStore";
 
 // Disable prerendering for API route
 export const prerender = false;
@@ -80,6 +81,23 @@ export const PATCH: APIRoute = async (context) => {
   // ============================================================================
 
   try {
+    // TESTING MODE: In-memory persistence for deterministic E2E
+    if (isTestingMode()) {
+      const updated = updateListName({ userId: user.id, listId: id, name: requestBody.name });
+
+      if (!updated) {
+        console.warn("[Update List] List not found or unauthorized (testing mode)");
+        return errorResponse("not_found", "List not found", 404);
+      }
+
+      return new Response(JSON.stringify({ success: true, list: updated }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
     const { data: list, error } = await supabase
       .from("lists")
       .update({ name: requestBody.name })
@@ -145,6 +163,22 @@ export const DELETE: APIRoute = async (context) => {
   // ============================================================================
 
   try {
+    // TESTING MODE: In-memory persistence for deterministic E2E
+    if (isTestingMode()) {
+      const ok = deleteList({ userId: user.id, listId: id });
+      if (!ok) {
+        console.warn("[Delete List] List not found or unauthorized (testing mode)");
+        return errorResponse("not_found", "List not found", 404);
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "List deleted successfully" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
     const { error } = await supabase.from("lists").delete().eq("id", id).eq("user_id", user.id);
 
     if (error) {

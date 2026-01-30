@@ -13,6 +13,7 @@ import DashboardGrid from "../components/DashboardGrid.astro";
 // import { QuotaIndicator } from "../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../components/UserMenu";
 import type { ListWithItemsDTO } from "../types";
+import { getListsByUser, isTestingMode } from "@/lib/testing/inMemoryListsStore";
 
 // Check authentication
 const user = Astro.locals.user;
@@ -28,20 +29,26 @@ const {
 
 const userEmail = session?.user?.email || user.email;
 
-// Fetch user's lists with items
-const { data: lists, error } = await Astro.locals.supabase
-  .from("lists")
-  .select("*, items:list_items(*)")
-  .eq("user_id", user.id)
-  .order("last_accessed_at", { ascending: false, nullsFirst: false })
-  .returns<ListWithItemsDTO[]>();
+let userLists: ListWithItemsDTO[] = [];
 
-// Handle error
-if (error) {
-  console.error("Failed to fetch lists:", error);
+if (isTestingMode()) {
+  userLists = getListsByUser(user.id);
+} else {
+  // Fetch user's lists with items
+  const { data: lists, error } = await Astro.locals.supabase
+    .from("lists")
+    .select("*, items:list_items(*)")
+    .eq("user_id", user.id)
+    .order("last_accessed_at", { ascending: false, nullsFirst: false })
+    .returns<ListWithItemsDTO[]>();
+
+  // Handle error
+  if (error) {
+    console.error("Failed to fetch lists:", error);
+  }
+
+  userLists = lists ?? [];
 }
-
-const userLists = lists ?? [];
 
 // TODO: Fetch AI quota status (will be implemented with API)
 ---

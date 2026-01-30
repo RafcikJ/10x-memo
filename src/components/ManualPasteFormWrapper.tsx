@@ -53,10 +53,7 @@ export default function ManualPasteFormWrapper() {
     };
 
     function sanitizeText(text: string) {
-      return text
-        .replace(/[<>]/g, "")
-        .slice(0, 80)
-        .trim();
+      return text.replace(/[<>]/g, "").slice(0, 80).trim();
     }
 
     function showError(message: string) {

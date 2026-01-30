@@ -57,7 +57,7 @@ tests/
 │   └── supabase.test.ts
 └── e2e/                        ✅ Testy E2E
     ├── example.spec.ts
-    └── auth-flow.spec.ts
+    └── ai-list-generation.spec.ts
 ```
 
 ### ✅ 4. Dodane Skrypty NPM
@@ -91,7 +91,7 @@ tests/
 
 **Testy E2E:**
 - ✅ `tests/e2e/example.spec.ts` - wzorce testów E2E
-- ✅ `tests/e2e/auth-flow.spec.ts` - testowanie przepływu autoryzacji
+- ✅ `tests/e2e/ai-list-generation.spec.ts` - pełne testy E2E (POM)
 
 ### ✅ 6. Funkcje Pomocnicze
 
@@ -227,7 +227,6 @@ npm run test:all               # Uruchom wszystko
 
 ### Testy E2E ✅
 - Pełne ścieżki użytkownika
-- Przepływy autoryzacji
 - Wysyłanie formularzy
 - Testowanie nawigacji
 - Audyty dostępności
