@@ -126,21 +126,21 @@ jobs:
           retention-days: 7
 
   status-comment:
-    name: Status comment (PR)
+    name: Status comment
     needs: [lint, unit-test, e2e-test]
-    if: ${{ github.event_name == 'pull_request' && success() }}
+    if: ${{ github.event_name == 'commit' && success() }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
     steps:
-      - name: Comment on PR with overall status
+      - name: Comment on commit with overall status
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = context.payload.jobs?.name;
-            if (!prNumber) {
-              core.info("No PR number found in event payload; skipping comment.");
+            const commitNumber = context.payload.jobs?.name;
+            if (!commitNumber) {
+              core.info("No commit number found in event payload; skipping comment.");
               return;
             }
 
@@ -158,7 +158,7 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
+              issue_number: commitNumber,
               body,
             });
 
