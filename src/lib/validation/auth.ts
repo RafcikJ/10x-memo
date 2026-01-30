@@ -24,13 +24,13 @@ export const SendMagicLinkSchema = z.object({
     .default("/dashboard")
     .refine(
       (val) => {
-        // Allow relative paths starting with /
-        if (val.startsWith("/")) return true;
+        // Allow relative paths starting with a single "/" (block protocol-relative URLs like "//evil.com")
+        if (val.startsWith("/") && !val.startsWith("//")) return true;
 
-        // Allow full URLs (for external redirects if needed)
+        // Allow only http(s) absolute URLs (block javascript:, data:, file:, etc.)
         try {
-          new URL(val);
-          return true;
+          const url = new URL(val);
+          return url.protocol === "http:" || url.protocol === "https:";
         } catch {
           return false;
         }
