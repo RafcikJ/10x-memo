@@ -1,8 +1,8 @@
 /**
  * Dashboard Page Object Model
- * 
+ *
  * Represents the /dashboard page with list cards
- * 
+ *
  * Usage:
  * ```ts
  * const dashboard = new DashboardPage(page);
@@ -12,8 +12,8 @@
  * ```
  */
 
-import { type Page, type Locator, expect } from '@playwright/test';
-import { ListCardComponent } from './components/ListCardComponent';
+import { type Page, type Locator, expect } from "@playwright/test";
+import { ListCardComponent } from "./components/ListCardComponent";
 
 export class DashboardPage {
   readonly page: Page;
@@ -34,18 +34,18 @@ export class DashboardPage {
     this.dashboardGrid = page.locator('[data-test-id="dashboard-grid"]');
     this.listCountText = page.locator('[data-test-id="dashboard-list-count"]');
     this.cardsContainer = page.locator('[data-test-id="dashboard-cards-container"]');
-    this.emptyDashboard = page.locator('text=Nie masz jeszcze żadnych list'); // fallback
+    this.emptyDashboard = page.locator("text=Nie masz jeszcze żadnych list"); // fallback
 
     // Create list button
-    this.createListButton = page.getByRole('link', { name: /nowa lista/i });
+    this.createListButton = page.getByRole("link", { name: /nowa lista/i });
   }
 
   /**
    * Navigate to dashboard
    */
   async goto() {
-    await this.page.goto('/dashboard');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.goto("/dashboard");
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -89,14 +89,14 @@ export class DashboardPage {
    */
   async findListByName(name: string): Promise<ListCardComponent | null> {
     const cards = await this.getListCards();
-    
+
     for (const card of cards) {
       const cardName = await card.getName();
       if (cardName === name) {
         return card;
       }
     }
-    
+
     return null;
   }
 
@@ -105,11 +105,11 @@ export class DashboardPage {
    */
   async findListById(id: string): Promise<ListCardComponent | null> {
     const cardLocator = this.page.locator(`[data-test-id="list-card"][data-list-id="${id}"]`);
-    
+
     if (!(await cardLocator.isVisible())) {
       return null;
     }
-    
+
     return new ListCardComponent(this.page, cardLocator);
   }
 
@@ -118,11 +118,11 @@ export class DashboardPage {
    */
   async getFirstCard(): Promise<ListCardComponent | null> {
     const cardLocator = this.page.locator('[data-test-id="list-card"]').first();
-    
+
     if (!(await cardLocator.isVisible())) {
       return null;
     }
-    
+
     return new ListCardComponent(this.page, cardLocator);
   }
 
@@ -131,19 +131,19 @@ export class DashboardPage {
    */
   async clickCreateList() {
     await this.createListButton.click();
-    await this.page.waitForURL('**/lists/new');
+    await this.page.waitForURL("**/lists/new");
   }
 
   /**
    * Wait for dashboard to load
    */
   async waitForLoad() {
-    await this.page.waitForLoadState('networkidle');
-    
+    await this.page.waitForLoadState("networkidle");
+
     // Wait for either dashboard grid or empty state
     await Promise.race([
-      this.dashboardGrid.waitFor({ state: 'visible', timeout: 5000 }),
-      this.emptyDashboard.waitFor({ state: 'visible', timeout: 5000 }),
+      this.dashboardGrid.waitFor({ state: "visible", timeout: 5000 }),
+      this.emptyDashboard.waitFor({ state: "visible", timeout: 5000 }),
     ]);
   }
 
@@ -175,17 +175,17 @@ export class DashboardPage {
    */
   async waitForNewList(name: string, timeout = 10000): Promise<ListCardComponent | null> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       const card = await this.findListByName(name);
       if (card) {
         return card;
       }
-      
+
       await this.page.waitForTimeout(500);
       await this.page.reload();
     }
-    
+
     return null;
   }
 }

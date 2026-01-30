@@ -61,12 +61,24 @@ const reactConfig = tseslint.config({
   },
 });
 
+// Relaxed rules for test files
+const testConfig = tseslint.config({
+  files: ["tests/**/*.{ts,tsx}"],
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-useless-constructor": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   generatedFilesConfig,
   baseConfig,
   jsxA11yConfig,
   reactConfig,
+  testConfig,
   eslintPluginAstro.configs["flat/recommended"],
   eslintPluginPrettier
 );

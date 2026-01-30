@@ -37,7 +37,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         aud: "authenticated",
         created_at: new Date().toISOString(),
       } as User;
-      
+
       console.log(`[Auth Middleware] Created mock test user: ${cachedTestUser.email}`);
     }
 

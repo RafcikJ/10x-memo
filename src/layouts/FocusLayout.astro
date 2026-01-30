@@ -28,8 +28,11 @@ const { title = "Test - Memo" } = Astro.props;
 
     <!-- Prevent FOUC (Flash of Unstyled Content) for theme -->
     <script is:inline>
+      /* eslint-disable */
       const theme = localStorage.getItem("theme") || "system";
-      if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      const isDarkMode =
+        theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      if (isDarkMode) {
         document.documentElement.classList.add("dark");
       }
     </script>

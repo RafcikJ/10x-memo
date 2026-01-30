@@ -94,8 +94,8 @@ if (sortedItems.length < 5) {
 </FocusLayout>
 
 <script>
+  /* eslint-disable */
   const exitButton = document.getElementById("exit-button");
-  const listId = window.location.pathname.split("/")[2];
 
   exitButton?.addEventListener("click", () => {
     const confirmExit = confirm("Czy na pewno chcesz przerwać test? Postęp nie zostanie zapisany.");

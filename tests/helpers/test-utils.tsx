@@ -3,17 +3,14 @@
  * Custom render functions and test helpers
  */
 
-import { render, RenderOptions } from '@testing-library/react';
-import { ReactElement } from 'react';
+import { render, RenderOptions } from "@testing-library/react";
+import { ReactElement } from "react";
 
 /**
  * Custom render function with common providers
  * Extend this as needed with your app's providers (Context, Router, etc.)
  */
-export function renderWithProviders(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) {
+export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) {
   // Add your providers here if needed
   // const Wrapper = ({ children }: { children: React.ReactNode }) => {
   //   return (
@@ -40,7 +37,7 @@ export function createMockResponse<T>(data: T, status = 200): Response {
     status,
     json: async () => data,
     text: async () => JSON.stringify(data),
-    headers: new Headers({ 'Content-Type': 'application/json' }),
+    headers: new Headers({ "Content-Type": "application/json" }),
   } as Response;
 }
 
@@ -52,4 +49,4 @@ export function createMockErrorResponse(message: string, status = 400): Response
 }
 
 // Re-export everything from testing-library
-export * from '@testing-library/react';
+export * from "@testing-library/react";

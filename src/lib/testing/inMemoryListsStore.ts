@@ -178,4 +178,3 @@ export function deleteItem(args: { userId: string; listId: string; itemId: strin
   store.listsById.set(args.listId, updated);
   return true;
 }
-

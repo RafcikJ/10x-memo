@@ -484,7 +484,8 @@ export interface ChatCompletionResponseDTO {
  * Structured Completion Request DTO
  * For chat completions with enforced JSON schema output
  */
-export interface StructuredCompletionRequestDTO<TSchemaName extends string = string> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface StructuredCompletionRequestDTO<_TSchemaName extends string = string> {
   systemPrompt?: string;
   messages: ChatMessage[];
   responseFormat: JSONSchemaResponseFormat;

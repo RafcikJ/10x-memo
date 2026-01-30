@@ -26,9 +26,6 @@ const {
 } = await Astro.locals.supabase.auth.getSession();
 
 const userEmail = session?.user?.email || user.email;
-
-// TODO: Fetch AI quota status
-const quotaRemaining = 5; // Placeholder
 ---
 
 <MainLayout title="Nowa lista - Memo">
@@ -57,6 +54,7 @@ const quotaRemaining = 5; // Placeholder
 </MainLayout>
 
 <script>
+  /* eslint-disable */
   import { createRoot } from "react-dom/client";
   import { createElement } from "react";
   import { ListCreator } from "../../components/ListCreator";

@@ -1,8 +1,8 @@
 /**
  * List Card Component (Page Object)
- * 
+ *
  * Represents a single list card on the dashboard
- * 
+ *
  * Usage:
  * ```ts
  * const card = new ListCardComponent(page, cardLocator);
@@ -11,7 +11,7 @@
  * ```
  */
 
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from "@playwright/test";
 
 export class ListCardComponent {
   readonly page: Page;
@@ -33,14 +33,14 @@ export class ListCardComponent {
     this.wordCountElement = cardLocator.locator('[data-test-id="list-card-word-count"]');
     this.categoryElement = cardLocator.locator('[data-test-id="list-card-category"]');
     this.progressBar = cardLocator.locator('[role="progressbar"]');
-    this.lastScoreText = cardLocator.locator('text=/Ostatni wynik/').locator('..');
+    this.lastScoreText = cardLocator.locator("text=/Ostatni wynik/").locator("..");
   }
 
   /**
    * Get list ID from data attribute
    */
   async getId(): Promise<string | null> {
-    return await this.card.getAttribute('data-list-id');
+    return await this.card.getAttribute("data-list-id");
   }
 
   /**
@@ -48,7 +48,7 @@ export class ListCardComponent {
    */
   async getName(): Promise<string> {
     const text = await this.nameElement.textContent();
-    return text?.trim() || '';
+    return text?.trim() || "";
   }
 
   /**
@@ -103,7 +103,7 @@ export class ListCardComponent {
    * Click the card to navigate to test
    */
   async click() {
-    const link = this.card.locator('a').first();
+    const link = this.card.locator("a").first();
     await link.click();
   }
 
@@ -111,8 +111,8 @@ export class ListCardComponent {
    * Get card link URL
    */
   async getUrl(): Promise<string | null> {
-    const link = this.card.locator('a').first();
-    return await link.getAttribute('href');
+    const link = this.card.locator("a").first();
+    return await link.getAttribute("href");
   }
 
   /**
@@ -132,12 +132,7 @@ export class ListCardComponent {
   /**
    * Verify card data
    */
-  async verify(expectedData: {
-    name?: string;
-    wordCount?: number;
-    category?: string;
-    hasScore?: boolean;
-  }) {
+  async verify(expectedData: { name?: string; wordCount?: number; category?: string; hasScore?: boolean }) {
     if (expectedData.name !== undefined) {
       const name = await this.getName();
       expect(name).toBe(expectedData.name);

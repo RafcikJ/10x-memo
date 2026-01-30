@@ -51,11 +51,11 @@
 </form>
 
 <script>
+  /* eslint-disable */
   const form = document.getElementById("manual-paste-form") as HTMLFormElement;
   const textarea = document.getElementById("paste-text") as HTMLTextAreaElement;
   const lineCountSpan = document.getElementById("line-count") as HTMLSpanElement;
   const errorDiv = document.getElementById("manual-error") as HTMLDivElement;
-  const submitButton = document.getElementById("manual-submit") as HTMLButtonElement;
 
   // Update line count on input
   textarea.addEventListener("input", () => {

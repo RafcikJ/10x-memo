@@ -117,7 +117,16 @@ export function ModeSegmentedControl({ mode, onModeChange, hasData = false }: Mo
       {pendingMode && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={cancelModeChange} />
+          <div
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            onClick={cancelModeChange}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") cancelModeChange();
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Zamknij dialog"
+          />
 
           {/* Dialog */}
           <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg">

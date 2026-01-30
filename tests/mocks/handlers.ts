@@ -3,23 +3,23 @@
  * Mock API responses for testing
  */
 
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 // Define your API base URL
-const API_BASE = 'http://localhost:4321/api';
+const API_BASE = "http://localhost:4321/api";
 
 export const handlers = [
   // Example: Mock OpenRouter API
-  http.post('https://openrouter.ai/api/v1/chat/completions', () => {
+  http.post("https://openrouter.ai/api/v1/chat/completions", () => {
     return HttpResponse.json({
-      id: 'mock-completion-id',
+      id: "mock-completion-id",
       choices: [
         {
           message: {
-            role: 'assistant',
-            content: 'Mocked AI response for testing',
+            role: "assistant",
+            content: "Mocked AI response for testing",
           },
-          finish_reason: 'stop',
+          finish_reason: "stop",
         },
       ],
       usage: {
@@ -34,7 +34,7 @@ export const handlers = [
   http.post(`${API_BASE}/auth/send-magic-link`, () => {
     return HttpResponse.json({
       success: true,
-      message: 'Magic link sent',
+      message: "Magic link sent",
     });
   }),
 
@@ -42,9 +42,9 @@ export const handlers = [
   http.get(`${API_BASE}/lists`, () => {
     return HttpResponse.json([
       {
-        id: '1',
-        title: 'Test List',
-        description: 'Test Description',
+        id: "1",
+        title: "Test List",
+        description: "Test Description",
         items_count: 5,
         created_at: new Date().toISOString(),
       },

@@ -6,6 +6,7 @@
  */
 
 import type { ErrorResponse, RateLimitErrorResponse, ValidationError } from "@/types";
+import type { ZodError } from "zod";
 
 /**
  * Generic error response factory
@@ -150,8 +151,8 @@ export function aiServiceErrorResponse(retryAfter = 30): Response {
  * }
  * ```
  */
-export function extractZodErrors(zodError: any): Record<string, string> {
+export function extractZodErrors(zodError: ZodError): Record<string, string> {
   if (!zodError?.errors) return {};
 
-  return Object.fromEntries(zodError.errors.map((e: any) => [e.path.join(".") || "root", e.message]));
+  return Object.fromEntries(zodError.errors.map((e) => [e.path.join(".") || "root", e.message]));
 }

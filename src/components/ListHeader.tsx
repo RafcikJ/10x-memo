@@ -17,7 +17,12 @@ interface ListHeaderProps {
   onNameUpdate?: (newName: string) => void;
 }
 
-export function ListHeader({ initialName, listId, isLocked, onNameUpdate }: ListHeaderProps) {
+export function ListHeader({
+  initialName,
+  listId,
+  isLocked: _isLocked, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onNameUpdate,
+}: ListHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(initialName);
   const [tempName, setTempName] = useState(initialName);
@@ -85,7 +90,6 @@ export function ListHeader({ initialName, listId, isLocked, onNameUpdate }: List
           onChange={(e) => setTempName(e.target.value)}
           maxLength={80}
           className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-2xl font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          autoFocus
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
             if (e.key === "Escape") handleCancel();

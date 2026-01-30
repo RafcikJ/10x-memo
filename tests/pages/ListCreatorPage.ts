@@ -1,8 +1,8 @@
 /**
  * List Creator Page Object Model
- * 
+ *
  * Represents the /lists/new page with AI generator and list preview
- * 
+ *
  * Usage:
  * ```ts
  * const listCreator = new ListCreatorPage(page);
@@ -12,9 +12,9 @@
  * ```
  */
 
-import { type Page, type Locator, expect } from '@playwright/test';
-import { AiGeneratorFormComponent } from './components/AiGeneratorFormComponent';
-import { ListPreviewComponent } from './components/ListPreviewComponent';
+import { type Page, type Locator, expect } from "@playwright/test";
+import { AiGeneratorFormComponent } from "./components/AiGeneratorFormComponent";
+import { ListPreviewComponent } from "./components/ListPreviewComponent";
 
 export class ListCreatorPage {
   readonly page: Page;
@@ -31,16 +31,16 @@ export class ListCreatorPage {
     this.listPreview = new ListPreviewComponent(page);
 
     // Mode switcher buttons
-    this.aiModeButton = page.getByRole('button', { name: /AI/i });
-    this.manualModeButton = page.getByRole('button', { name: /Ręcznie/i });
+    this.aiModeButton = page.getByRole("button", { name: /AI/i });
+    this.manualModeButton = page.getByRole("button", { name: /Ręcznie/i });
   }
 
   /**
    * Navigate to list creator page
    */
   async goto() {
-    await this.page.goto('/lists/new');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.goto("/lists/new");
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -60,7 +60,7 @@ export class ListCreatorPage {
 
   /**
    * Complete flow: Generate AI list and save it
-   * 
+   *
    * @param category - Category to generate (e.g., 'food', 'animals')
    * @param wordCount - Number of words to generate (10-50)
    * @param listName - Name for the list
@@ -88,7 +88,7 @@ export class ListCreatorPage {
     await this.listPreview.save();
 
     // Wait for redirect to dashboard
-    await this.page.waitForURL('**/dashboard', { timeout: 10000 });
+    await this.page.waitForURL("**/dashboard", { timeout: 10000 });
 
     return {
       name: listName,

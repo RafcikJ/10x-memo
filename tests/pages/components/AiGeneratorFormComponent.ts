@@ -1,8 +1,8 @@
 /**
  * AI Generator Form Component (Page Object)
- * 
+ *
  * Represents the AI generation form in ListCreator
- * 
+ *
  * Usage:
  * ```ts
  * const aiForm = new AiGeneratorFormComponent(page);
@@ -12,9 +12,9 @@
  * ```
  */
 
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from "@playwright/test";
 
-export type NounCategory = 'animals' | 'food' | 'household_items' | 'transport' | 'jobs';
+export type NounCategory = "animals" | "food" | "household_items" | "transport" | "jobs";
 
 export class AiGeneratorFormComponent {
   readonly page: Page;
@@ -55,11 +55,11 @@ export class AiGeneratorFormComponent {
    */
   async setWordCount(count: number) {
     if (count < 10 || count > 50) {
-      throw new Error('Word count must be between 10 and 50');
+      throw new Error("Word count must be between 10 and 50");
     }
-    
+
     await this.wordCountSlider.fill(count.toString());
-    
+
     // Verify display updates
     const displayText = await this.wordCountDisplay.textContent();
     expect(displayText?.trim()).toBe(count.toString());
@@ -74,14 +74,14 @@ export class AiGeneratorFormComponent {
 
     // Wait for loading state
     await expect(this.generateButton).toBeDisabled();
-    
+
     // Wait for generation to complete (button re-enabled or error shown)
     await this.page.waitForTimeout(500); // Initial delay
-    
+
     // Wait for either success (button enabled) or error
     await Promise.race([
-      this.generateButton.waitFor({ state: 'attached', timeout: 30000 }),
-      this.errorMessage.waitFor({ state: 'visible', timeout: 30000 }),
+      this.generateButton.waitFor({ state: "attached", timeout: 30000 }),
+      this.errorMessage.waitFor({ state: "visible", timeout: 30000 }),
     ]);
   }
 
@@ -98,7 +98,7 @@ export class AiGeneratorFormComponent {
    */
   async getDisplayedWordCount(): Promise<number> {
     const text = await this.wordCountDisplay.textContent();
-    return parseInt(text?.trim() || '0', 10);
+    return parseInt(text?.trim() || "0", 10);
   }
 
   /**

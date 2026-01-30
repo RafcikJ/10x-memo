@@ -3,9 +3,9 @@
  * This file runs before all tests and sets up the testing environment
  */
 
-import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, afterAll, vi } from 'vitest';
+import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
+import { afterEach, beforeAll, afterAll, vi } from "vitest";
 
 // Cleanup after each test
 afterEach(() => {
@@ -15,7 +15,7 @@ afterEach(() => {
 // Mock global objects
 beforeAll(() => {
   // Mock window.matchMedia
-  Object.defineProperty(window, 'matchMedia', {
+  Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: vi.fn().mockImplementation((query) => ({
       matches: false,

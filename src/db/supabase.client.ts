@@ -31,8 +31,7 @@ const supabaseAnonKey =
   import.meta.env.SUPABASE_KEY ||
   process.env.SUPABASE_KEY;
 
-const supabaseServiceRoleKey =
-  import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   // Fail fast with an actionable error message (avoids confusing runtime DB errors)

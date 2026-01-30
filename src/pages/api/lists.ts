@@ -43,12 +43,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import type { CreateListWithItemsResponseDTO } from "@/types";
 import { validateCreateListWithItemsRequest } from "@/lib/validation/lists";
-import {
-  errorResponse,
-  validationErrorResponse,
-  unauthorizedResponse,
-  extractZodErrors,
-} from "@/lib/utils/api-errors";
+import { errorResponse, validationErrorResponse, unauthorizedResponse, extractZodErrors } from "@/lib/utils/api-errors";
 import { createListWithItems, isTestingMode } from "@/lib/testing/inMemoryListsStore";
 
 // Disable prerendering for API route
@@ -168,15 +163,12 @@ export const POST: APIRoute = async (context) => {
       display: item.display.trim(),
     }));
 
-    const { data: itemsData, error: itemsError } = await supabase
-      .from("list_items")
-      .insert(itemsToInsert)
-      .select();
+    const { data: itemsData, error: itemsError } = await supabase.from("list_items").insert(itemsToInsert).select();
 
     if (itemsError) {
       // If items insert fails, try to cleanup the list (best effort)
       console.error("[Create List] Failed to create items:", itemsError);
-      
+
       // Attempt to delete the list (cascade will handle items if any were created)
       await supabase.from("lists").delete().eq("id", listData.id);
 

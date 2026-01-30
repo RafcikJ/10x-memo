@@ -11,7 +11,6 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import ProfileStats from "../components/ProfileStats.astro";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { DeleteAccountDialog } from "../components/DeleteAccountDialog";
 // import { QuotaIndicator } from "../components/QuotaIndicator"; // Disabled for MVP
 import { UserMenu } from "../components/UserMenu";
 
@@ -117,12 +116,13 @@ const accountCreatedAt = session?.user?.created_at || user.created_at || new Dat
 </MainLayout>
 
 <script>
-  import { createRoot } from "react-dom/client";
+  /* eslint-disable */
+  import { createRoot, type Root } from "react-dom/client";
   import { createElement } from "react";
   import { DeleteAccountDialog } from "../components/DeleteAccountDialog";
 
   const deleteButton = document.getElementById("delete-account-button");
-  let dialogRoot: any = null;
+  let dialogRoot: Root | null = null;
 
   deleteButton?.addEventListener("click", () => {
     // Create dialog container if it doesn't exist
@@ -139,10 +139,12 @@ const accountCreatedAt = session?.user?.created_at || user.created_at || new Dat
       createElement(DeleteAccountDialog, {
         isOpen: true,
         onClose: () => {
-          dialogRoot.render(
+          dialogRoot?.render(
             createElement(DeleteAccountDialog, {
               isOpen: false,
-              onClose: () => {},
+              onClose: () => {
+                // Dialog closed
+              },
             })
           );
         },

@@ -68,7 +68,8 @@ const progressPercentage = list.last_score ?? 0;
         <path d="m19 9-5 5-4-4-3 3"></path>
       </svg>
       <span data-test-id="list-card-word-count">
-        {itemCount} {itemCount === 1 ? "słówko" : itemCount < 5 ? "słówka" : "słów"}
+        {itemCount}
+        {itemCount === 1 ? "słówko" : itemCount < 5 ? "słówka" : "słów"}
       </span>
 
       {

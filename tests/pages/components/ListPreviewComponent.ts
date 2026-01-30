@@ -1,8 +1,8 @@
 /**
  * List Preview Component (Page Object)
- * 
+ *
  * Represents the list preview section with draft items and save functionality
- * 
+ *
  * Usage:
  * ```ts
  * const preview = new ListPreviewComponent(page);
@@ -12,7 +12,7 @@
  * ```
  */
 
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from "@playwright/test";
 
 export interface ListItem {
   position: number;
@@ -46,7 +46,7 @@ export class ListPreviewComponent {
    * Wait for preview section to appear
    */
   async waitForPreview(timeout = 10000) {
-    await this.previewSection.waitFor({ state: 'visible', timeout });
+    await this.previewSection.waitFor({ state: "visible", timeout });
   }
 
   /**
@@ -89,13 +89,13 @@ export class ListPreviewComponent {
     const itemElements = await this.itemsContainer.locator('[data-test-id^="list-item-"]').all();
 
     for (const item of itemElements) {
-      const testId = await item.getAttribute('data-test-id');
-      const position = parseInt(testId?.replace('list-item-', '') || '0', 10);
-      const text = await item.locator('span').nth(1).textContent();
-      
+      const testId = await item.getAttribute("data-test-id");
+      const position = parseInt(testId?.replace("list-item-", "") || "0", 10);
+      const text = await item.locator("span").nth(1).textContent();
+
       items.push({
         position,
-        text: text?.trim() || '',
+        text: text?.trim() || "",
       });
     }
 
@@ -107,15 +107,15 @@ export class ListPreviewComponent {
    */
   async getItem(position: number): Promise<ListItem | null> {
     const itemLocator = this.page.locator(`[data-test-id="list-item-${position}"]`);
-    
+
     if (!(await itemLocator.isVisible())) {
       return null;
     }
 
-    const text = await itemLocator.locator('span').nth(1).textContent();
+    const text = await itemLocator.locator("span").nth(1).textContent();
     return {
       position,
-      text: text?.trim() || '',
+      text: text?.trim() || "",
     };
   }
 
@@ -164,7 +164,7 @@ export class ListPreviewComponent {
    */
   async isSaving(): Promise<boolean> {
     const buttonText = await this.saveButton.textContent();
-    return buttonText?.includes('Zapisywanie') || false;
+    return buttonText?.includes("Zapisywanie") || false;
   }
 
   /**
@@ -189,7 +189,7 @@ export class ListPreviewComponent {
    */
   async verifyPreview(expectedWordCount: number, expectedListName?: string) {
     await expect(this.previewSection).toBeVisible();
-    
+
     const actualCount = await this.getWordCount();
     expect(actualCount).toBe(expectedWordCount);
 

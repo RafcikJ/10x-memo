@@ -97,11 +97,11 @@ export default defineConfig({
       // Testing mode flags
       DISABLE_AUTH_FOR_TESTING: process.env.DISABLE_AUTH_FOR_TESTING || "true",
       DISABLE_AI_QUOTA_FOR_TESTING: process.env.DISABLE_AI_QUOTA_FOR_TESTING || "true",
-      
+
       // Test user configuration
       TEST_USER_EMAIL: process.env.TEST_USER_EMAIL || "test@playwright.test",
       TEST_USER_ID: process.env.TEST_USER_ID || "00000000-0000-0000-0000-000000000001",
-      
+
       // Supabase configuration
       PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL || "",
       PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY || "",
@@ -109,10 +109,10 @@ export default defineConfig({
       SUPABASE_URL: process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL || "",
       SUPABASE_KEY: process.env.SUPABASE_KEY || process.env.PUBLIC_SUPABASE_ANON_KEY || "",
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-      
+
       // OpenRouter API (for AI generation tests)
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || "",
-      
+
       // App configuration
       PUBLIC_APP_URL: process.env.PUBLIC_APP_URL || "http://localhost:4321",
     },
