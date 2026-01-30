@@ -30,10 +30,10 @@ function createTestingSupabaseStub(user: User) {
       async signOut() {
         return { error: null };
       },
-      async exchangeCodeForSession(_code: string) {
+      async exchangeCodeForSession() {
         return { data: { session, user }, error: null };
       },
-      async signInWithOtp(_args: unknown) {
+      async signInWithOtp() {
         return { data: {}, error: null };
       },
     },
